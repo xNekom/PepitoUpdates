@@ -28,7 +28,7 @@ serve(async (req: Request) => {
     console.log('🔄 Iniciando verificación del estado de Pépito...')
 
     // Consultar la API de Pépito
-    const apiResponse = await fetch('https://pepito-api.vercel.app/api/status', {
+    const apiResponse = await fetch('https://api.thecatdoor.com/status', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
