@@ -26,11 +26,11 @@ jobs:
           exit 1
         fi
 
-        # Hacer la petición a la Edge Function
+        # Hacer la petición a la Edge Function con la Service Role Key
         response=$(curl -s -w "\n%{http_code}" \
           -X POST \
           -H "Content-Type: application/json" \
-          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
           -H "X-From-GitHub-Actions: true" \
           "$EDGE_FUNCTION_URL")
 
