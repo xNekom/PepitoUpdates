@@ -1,0 +1,46 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cuerpo del gato durmiendo -->
+  <ellipse cx="60" cy="75" rx="35" ry="20" fill="#FF6B35" opacity="0.9"/>
+  
+  <!-- Cabeza -->
+  <circle cx="60" cy="45" r="25" fill="#FF6B35"/>
+  
+  <!-- Orejas -->
+  <path d="M40 30 L35 15 L50 25 Z" fill="#FF6B35"/>
+  <path d="M80 30 L85 15 L70 25 Z" fill="#FF6B35"/>
+  <path d="M42 28 L40 20 L48 26 Z" fill="#FF8C42"/>
+  <path d="M78 28 L80 20 L72 26 Z" fill="#FF8C42"/>
+  
+  <!-- Ojos cerrados -->
+  <path d="M50 40 Q55 45 60 40" stroke="#2C3E50" stroke-width="2" fill="none"/>
+  <path d="M60 40 Q65 45 70 40" stroke="#2C3E50" stroke-width="2" fill="none"/>
+  
+  <!-- Nariz -->
+  <path d="M58 48 L60 52 L62 48 Z" fill="#E74C3C"/>
+  
+  <!-- Boca sonriente -->
+  <path d="M60 52 Q55 58 50 55" stroke="#2C3E50" stroke-width="1.5" fill="none"/>
+  <path d="M60 52 Q65 58 70 55" stroke="#2C3E50" stroke-width="1.5" fill="none"/>
+  
+  <!-- Cola curvada -->
+  <path d="M25 75 Q15 65 20 50 Q25 40 35 45" stroke="#FF6B35" stroke-width="8" fill="none" stroke-linecap="round"/>
+  
+  <!-- Patas -->
+  <ellipse cx="45" cy="90" rx="6" ry="12" fill="#FF6B35"/>
+  <ellipse cx="75" cy="90" rx="6" ry="12" fill="#FF6B35"/>
+  
+  <!-- Patitas -->
+  <ellipse cx="45" cy="100" rx="8" ry="5" fill="#FF8C42"/>
+  <ellipse cx="75" cy="100" rx="8" ry="5" fill="#FF8C42"/>
+  
+  <!-- Bigotes -->
+  <line x1="30" y1="45" x2="20" y2="42" stroke="#2C3E50" stroke-width="1"/>
+  <line x1="30" y1="50" x2="20" y2="50" stroke="#2C3E50" stroke-width="1"/>
+  <line x1="90" y1="45" x2="100" y2="42" stroke="#2C3E50" stroke-width="1"/>
+  <line x1="90" y1="50" x2="100" y2="50" stroke="#2C3E50" stroke-width="1"/>
+  
+  <!-- Zzz para indicar sueño -->
+  <text x="85" y="25" font-family="Arial, sans-serif" font-size="12" fill="#6B7280" opacity="0.7">Z</text>
+  <text x="90" y="20" font-family="Arial, sans-serif" font-size="10" fill="#6B7280" opacity="0.5">z</text>
+  <text x="95" y="15" font-family="Arial, sans-serif" font-size="8" fill="#6B7280" opacity="0.3">z</text>
+</svg>

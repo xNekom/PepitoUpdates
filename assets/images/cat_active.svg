@@ -1,0 +1,50 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cuerpo del gato activo -->
+  <ellipse cx="60" cy="70" rx="30" ry="18" fill="#00B894" opacity="0.9"/>
+  
+  <!-- Cabeza -->
+  <circle cx="60" cy="45" r="22" fill="#00B894"/>
+  
+  <!-- Orejas alertas -->
+  <path d="M42 28 L38 12 L52 22 Z" fill="#00B894"/>
+  <path d="M78 28 L82 12 L68 22 Z" fill="#00B894"/>
+  <path d="M44 26 L42 18 L50 24 Z" fill="#1ABC9C"/>
+  <path d="M76 26 L78 18 L70 24 Z" fill="#1ABC9C"/>
+  
+  <!-- Ojos abiertos y alertas -->
+  <circle cx="52" cy="40" r="4" fill="#2C3E50"/>
+  <circle cx="68" cy="40" r="4" fill="#2C3E50"/>
+  <circle cx="53" cy="39" r="1.5" fill="white"/>
+  <circle cx="69" cy="39" r="1.5" fill="white"/>
+  
+  <!-- Nariz -->
+  <path d="M58 48 L60 52 L62 48 Z" fill="#E74C3C"/>
+  
+  <!-- Boca alerta -->
+  <path d="M60 52 Q55 56 52 54" stroke="#2C3E50" stroke-width="1.5" fill="none"/>
+  <path d="M60 52 Q65 56 68 54" stroke="#2C3E50" stroke-width="1.5" fill="none"/>
+  
+  <!-- Cola erguida y curvada -->
+  <path d="M30 70 Q20 50 25 30 Q30 15 40 25" stroke="#00B894" stroke-width="8" fill="none" stroke-linecap="round"/>
+  
+  <!-- Patas en posición de alerta -->
+  <ellipse cx="48" cy="85" rx="5" ry="10" fill="#00B894"/>
+  <ellipse cx="72" cy="85" rx="5" ry="10" fill="#00B894"/>
+  
+  <!-- Patitas -->
+  <ellipse cx="48" cy="93" rx="7" ry="4" fill="#1ABC9C"/>
+  <ellipse cx="72" cy="93" rx="7" ry="4" fill="#1ABC9C"/>
+  
+  <!-- Bigotes más prominentes -->
+  <line x1="32" y1="43" x2="20" y2="40" stroke="#2C3E50" stroke-width="1.5"/>
+  <line x1="32" y1="48" x2="20" y2="48" stroke="#2C3E50" stroke-width="1.5"/>
+  <line x1="32" y1="53" x2="20" y2="56" stroke="#2C3E50" stroke-width="1.5"/>
+  <line x1="88" y1="43" x2="100" y2="40" stroke="#2C3E50" stroke-width="1.5"/>
+  <line x1="88" y1="48" x2="100" y2="48" stroke="#2C3E50" stroke-width="1.5"/>
+  <line x1="88" y1="53" x2="100" y2="56" stroke="#2C3E50" stroke-width="1.5"/>
+  
+  <!-- Líneas de movimiento para indicar actividad -->
+  <path d="M85 35 Q90 30 95 35" stroke="#6B7280" stroke-width="1" fill="none" opacity="0.5"/>
+  <path d="M90 40 Q95 35 100 40" stroke="#6B7280" stroke-width="1" fill="none" opacity="0.3"/>
+  <path d="M85 45 Q90 50 95 45" stroke="#6B7280" stroke-width="1" fill="none" opacity="0.4"/>
+</svg>

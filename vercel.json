@@ -1,0 +1,16 @@
+{
+  "functions": {
+    "automation_trigger.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "crons": [
+    {
+      "path": "/automation_trigger.js",
+      "schedule": "*/1 * * * *"
+    }
+  ],
+  "env": {
+    "SUPABASE_ANON_KEY": "@supabase_anon_key"
+  }
+}

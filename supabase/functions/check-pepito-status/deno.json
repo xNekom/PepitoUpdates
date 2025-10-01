@@ -1,0 +1,11 @@
+{
+  "imports": {
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2",
+    "std/": "https://deno.land/std@0.168.0/"
+  },
+  "compilerOptions": {
+    "allowJs": true,
+    "lib": ["deno.ns", "deno.window"],
+    "types": ["https://deno.land/x/xhr@0.3.0/mod.d.ts"]
+  }
+}

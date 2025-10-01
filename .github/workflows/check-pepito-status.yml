@@ -1,0 +1,59 @@
+name: Check Pepito Status
+
+on:
+  schedule:
+    # Ejecutar cada 2 minutos
+    - cron: '*/2 * * * *'
+  workflow_dispatch: # Permitir ejecución manual
+
+jobs:
+  check-pepito-status:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Check Pepito Status
+      run: |
+        echo "🔄 Verificando estado de Pépito..."
+
+        # URL de la Edge Function de Supabase (reemplaza con tu URL real)
+        EDGE_FUNCTION_URL="${{ secrets.SUPABASE_EDGE_FUNCTION_URL }}"
+
+        if [ -z "$EDGE_FUNCTION_URL" ]; then
+          echo "❌ Error: SUPABASE_EDGE_FUNCTION_URL no está configurado en los secrets"
+          exit 1
+        fi
+
+        # Hacer la petición a la Edge Function
+        response=$(curl -s -w "\n%{http_code}" \
+          -X POST \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+          "$EDGE_FUNCTION_URL")
+
+        # Extraer el código de estado HTTP (última línea)
+        http_code=$(echo "$response" | tail -n1)
+        # Extraer el cuerpo de la respuesta (todo menos la última línea)
+        body=$(echo "$response" | head -n -1)
+
+        echo "📡 Código de respuesta: $http_code"
+        echo "📄 Respuesta: $body"
+
+        if [ "$http_code" -eq 200 ]; then
+          echo "✅ Estado de Pépito verificado exitosamente"
+
+          # Parsear la respuesta JSON para mostrar información útil
+          status=$(echo "$body" | jq -r '.status // "unknown"')
+          description=$(echo "$body" | jq -r '.description // "Sin descripción"')
+          inserted=$(echo "$body" | jq -r '.inserted // false')
+
+          echo "📊 Estado: $status"
+          echo "📝 Descripción: $description"
+          echo "💾 Insertado en BD: $inserted"
+        else
+          echo "❌ Error al verificar estado de Pépito"
+          echo "🔍 Respuesta completa: $body"
+          exit 1
+        fi

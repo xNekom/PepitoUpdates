@@ -1,0 +1,62 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cuerpo del gato jugando -->
+  <ellipse cx="55" cy="70" rx="28" ry="16" fill="#E84393" opacity="0.9" transform="rotate(-15 55 70)"/>
+  
+  <!-- Cabeza -->
+  <circle cx="50" cy="45" r="20" fill="#E84393"/>
+  
+  <!-- Orejas alertas -->
+  <path d="M35 30 L32 15 L45 25 Z" fill="#E84393"/>
+  <path d="M65 30 L68 15 L55 25 Z" fill="#E84393"/>
+  <path d="M37 28 L36 20 L43 26 Z" fill="#FD79A8"/>
+  <path d="M63 28 L64 20 L57 26 Z" fill="#FD79A8"/>
+  
+  <!-- Ojos juguetones -->
+  <circle cx="44" cy="40" r="3.5" fill="#2C3E50"/>
+  <circle cx="56" cy="40" r="3.5" fill="#2C3E50"/>
+  <circle cx="45" cy="39" r="1.2" fill="white"/>
+  <circle cx="57" cy="39" r="1.2" fill="white"/>
+  
+  <!-- Nariz -->
+  <path d="M48 48 L50 52 L52 48 Z" fill="#E74C3C"/>
+  
+  <!-- Boca sonriente -->
+  <path d="M50 52 Q45 56 42 54" stroke="#2C3E50" stroke-width="1.5" fill="none"/>
+  <path d="M50 52 Q55 56 58 54" stroke="#2C3E50" stroke-width="1.5" fill="none"/>
+  
+  <!-- Cola en movimiento -->
+  <path d="M27 70 Q15 55 20 40 Q25 25 35 35 Q40 45 35 55" stroke="#E84393" stroke-width="7" fill="none" stroke-linecap="round"/>
+  
+  <!-- Patas en posición de juego -->
+  <ellipse cx="40" cy="85" rx="5" ry="8" fill="#E84393" transform="rotate(-20 40 85)"/>
+  <ellipse cx="70" cy="80" rx="5" ry="8" fill="#E84393" transform="rotate(30 70 80)"/>
+  
+  <!-- Pata delantera extendida -->
+  <ellipse cx="25" cy="55" rx="4" ry="12" fill="#E84393" transform="rotate(-45 25 55)"/>
+  
+  <!-- Patitas -->
+  <ellipse cx="38" cy="92" rx="6" ry="3" fill="#FD79A8" transform="rotate(-20 38 92)"/>
+  <ellipse cx="72" cy="87" rx="6" ry="3" fill="#FD79A8" transform="rotate(30 72 87)"/>
+  <ellipse cx="20" cy="65" rx="5" ry="3" fill="#FD79A8" transform="rotate(-45 20 65)"/>
+  
+  <!-- Bigotes -->
+  <line x1="25" y1="43" x2="15" y2="40" stroke="#2C3E50" stroke-width="1.5"/>
+  <line x1="25" y1="48" x2="15" y2="48" stroke="#2C3E50" stroke-width="1.5"/>
+  <line x1="75" y1="43" x2="85" y2="40" stroke="#2C3E50" stroke-width="1.5"/>
+  <line x1="75" y1="48" x2="85" y2="48" stroke="#2C3E50" stroke-width="1.5"/>
+  
+  <!-- Pelota de juguete -->
+  <circle cx="85" cy="95" r="12" fill="#FDCB6E"/>
+  <circle cx="85" cy="95" r="8" fill="#F39C12" opacity="0.7"/>
+  <path d="M85 83 Q90 95 85 107" stroke="#E67E22" stroke-width="2" fill="none"/>
+  <path d="M73 95 Q85 90 97 95" stroke="#E67E22" stroke-width="2" fill="none"/>
+  
+  <!-- Líneas de movimiento -->
+  <path d="M75 35 Q80 30 85 35" stroke="#6B7280" stroke-width="1" fill="none" opacity="0.5"/>
+  <path d="M80 40 Q85 35 90 40" stroke="#6B7280" stroke-width="1" fill="none" opacity="0.3"/>
+  <path d="M10 60 Q15 55 20 60" stroke="#6B7280" stroke-width="1" fill="none" opacity="0.4"/>
+  
+  <!-- Estrellas de diversión -->
+  <path d="M95 25 L97 30 L102 30 L98 33 L100 38 L95 35 L90 38 L92 33 L88 30 L93 30 Z" fill="#FDCB6E" opacity="0.6"/>
+  <path d="M15 25 L16 28 L19 28 L17 30 L18 33 L15 31 L12 33 L13 30 L11 28 L14 28 Z" fill="#FDCB6E" opacity="0.4"/>
+</svg>
