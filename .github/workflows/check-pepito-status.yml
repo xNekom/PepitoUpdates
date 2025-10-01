@@ -31,6 +31,7 @@ jobs:
           -X POST \
           -H "Content-Type: application/json" \
           -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+          -H "X-From-GitHub-Actions: true" \
           "$EDGE_FUNCTION_URL")
 
         # Extraer el código de estado HTTP (última línea)
