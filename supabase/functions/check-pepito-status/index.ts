@@ -28,9 +28,10 @@ serve(async (req: Request) => {
     console.log('🔄 Iniciando verificación del estado de Pépito...')
 
     // Consultar la API de Pépito
-    const apiResponse = await fetch('https://api.thecatdoor.com/status', {
+    const apiResponse = await fetch('https://api.thecatdoor.com/rest/v1/last-status', {
       method: 'GET',
       headers: {
+        'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
       signal: AbortSignal.timeout(10000) // 10 segundos timeout
