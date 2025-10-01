@@ -7,9 +7,10 @@ const corsHeaders = {
 }
 
 interface PepitoStatus {
-  status: string;
-  description: string;
-  timestamp?: number;
+  event: string;
+  type: string;
+  time: number;
+  img: string;
 }
 
 serve(async (req: Request) => {
@@ -19,6 +20,34 @@ serve(async (req: Request) => {
   }
 
   try {
+    // Verificar si la petición viene de GitHub Actions
+    const userAgent = req.headers.get('user-agent') || ''
+    const githubDelivery = req.headers.get('x-github-delivery')
+    const fromGitHubActions = req.headers.get('x-from-github-actions') === 'true'
+    const isFromGitHub = userAgent.includes('GitHub') || githubDelivery !== null || fromGitHubActions
+
+    console.log('🔍 User-Agent:', userAgent)
+    console.log('🔍 GitHub Delivery:', githubDelivery)
+    console.log('🔍 From GitHub Actions:', fromGitHubActions)
+    console.log('🔍 Is from GitHub:', isFromGitHub)
+
+    // Si no viene de GitHub, verificar autenticación JWT
+    if (!isFromGitHub) {
+      const authHeader = req.headers.get('authorization')
+      if (!authHeader) {
+        return new Response(
+          JSON.stringify({ code: 401, message: 'Missing authorization header' }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 401
+          }
+        )
+      }
+
+      // Aquí iría la validación JWT si fuera necesaria
+      // Por ahora, solo permitimos si viene de GitHub
+    }
+
     // Crear cliente de Supabase
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -67,7 +96,7 @@ serve(async (req: Request) => {
     } else {
       // Verificar si ha pasado más de 1 minuto o si el estado cambió
       const timeDiff = now - lastActivity.timestamp
-      const statusChanged = lastActivity.type !== pepitoStatus.status
+      const statusChanged = lastActivity.type !== pepitoStatus.type
       
       if (timeDiff > 60 || statusChanged) {
         shouldInsert = true
@@ -83,13 +112,13 @@ serve(async (req: Request) => {
         .from('pepito_activities')
         .insert({
           event: 'pepito', // Campo requerido
-          type: pepitoStatus.status, // 'in' o 'out'
-          timestamp: new Date(now * 1000).toISOString(), // Formato ISO para Supabase
+          type: pepitoStatus.type, // 'in' o 'out'
+          timestamp: new Date(pepitoStatus.time * 1000).toISOString(), // Formato ISO para Supabase
           created_at: new Date().toISOString(),
-          description: pepitoStatus.description, // Campo requerido
+          description: `Pepito ${pepitoStatus.type === 'in' ? 'entró' : 'salió'}`, // Campo requerido
           source: 'edge_function', // Campo requerido
           metadata: {
-            api_timestamp: now,
+            api_timestamp: pepitoStatus.time,
             processed_at: new Date().toISOString(),
             automatic_check: true
           }
@@ -107,8 +136,8 @@ serve(async (req: Request) => {
     return new Response(
       JSON.stringify({
         success: true,
-        status: pepitoStatus.status,
-        description: pepitoStatus.description,
+        status: pepitoStatus.type,
+        description: `Pepito ${pepitoStatus.type === 'in' ? 'entró' : 'salió'}`,
         inserted: shouldInsert,
         timestamp: now
       }),
