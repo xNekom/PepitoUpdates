@@ -30,7 +30,6 @@ jobs:
         response=$(curl -s -w "\n%{http_code}" \
           -X POST \
           -H "Content-Type: application/json" \
-          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
           "$EDGE_FUNCTION_URL")
 
         # Extraer el código de estado HTTP (última línea)
