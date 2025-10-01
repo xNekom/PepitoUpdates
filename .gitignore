@@ -134,6 +134,18 @@ lcov/
 tmp/
 temp/
 
+# Scripts and automation files (local development only)
+*.bat
+*.ps1
+automation_trigger.js
+proxy-server.js
+scripts/
+check_*.*
+switch_*.*
+deploy_*.*
+run_with_*.*
+test_supabase_data.dart
+
 # Exceptions to above rules.
 !**/ios/**/default.mode1v3
 !**/ios/**/default.mode2v3
