@@ -365,7 +365,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       ),
       value: value,
       onChanged: enabled ? onChanged : null,
-      activeColor: AppTheme.primaryColor,
+      activeThumbColor: AppTheme.primaryColor,
     );
   }
 

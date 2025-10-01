@@ -886,7 +886,7 @@ class AdvancedStatisticsScreen extends ConsumerWidget {
   }
 
   Widget _buildNoDataChart(AppColors colors, String message) {
-    return Container(
+    return SizedBox(
       height: 200,
       child: Center(
         child: Column(

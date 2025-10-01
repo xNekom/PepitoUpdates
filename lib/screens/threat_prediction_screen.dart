@@ -197,7 +197,7 @@ class _ThreatPredictionScreenState extends State<ThreatPredictionScreen>
         children: [
           Expanded(
             child: DropdownButtonFormField<RiskLevel?>(
-              value: _selectedRiskFilter,
+              initialValue: _selectedRiskFilter,
               decoration: const InputDecoration(
                 labelText: 'Filtrar por Riesgo',
                 border: OutlineInputBorder(),
@@ -223,7 +223,7 @@ class _ThreatPredictionScreenState extends State<ThreatPredictionScreen>
           const SizedBox(width: 16),
           Expanded(
             child: DropdownButtonFormField<ThreatType?>(
-              value: _selectedTypeFilter,
+              initialValue: _selectedTypeFilter,
               decoration: const InputDecoration(
                 labelText: 'Filtrar por Tipo',
                 border: OutlineInputBorder(),

@@ -526,7 +526,7 @@ class _SecurityMonitorScreenState extends State<SecurityMonitorScreen>
             children: [
               Expanded(
                 child: DropdownButtonFormField<int?>(
-                  value: _selectedSeverity,
+                  initialValue: _selectedSeverity,
                   decoration: const InputDecoration(
                     labelText: 'Severidad',
                     border: OutlineInputBorder(),
@@ -557,7 +557,7 @@ class _SecurityMonitorScreenState extends State<SecurityMonitorScreen>
               const SizedBox(width: 16),
               Expanded(
                 child: DropdownButtonFormField<SecurityEventType?>(
-                  value: _selectedEventType,
+                  initialValue: _selectedEventType,
                   decoration: const InputDecoration(
                     labelText: 'Tipo',
                     border: OutlineInputBorder(),
@@ -835,7 +835,7 @@ class _SecurityMonitorScreenState extends State<SecurityMonitorScreen>
           mainAxisSize: MainAxisSize.min,
           children: [
             DropdownButtonFormField<int>(
-              value: _selectedSeverity,
+              initialValue: _selectedSeverity,
               decoration: const InputDecoration(labelText: 'Severidad'),
               items: List.generate(10, (i) => i + 1).map((severity) {
                 return DropdownMenuItem(
@@ -847,7 +847,7 @@ class _SecurityMonitorScreenState extends State<SecurityMonitorScreen>
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<SecurityEventType>(
-              value: _selectedEventType,
+              initialValue: _selectedEventType,
               decoration: const InputDecoration(labelText: 'Tipo'),
               items: SecurityEventType.values.map((type) {
                 return DropdownMenuItem(

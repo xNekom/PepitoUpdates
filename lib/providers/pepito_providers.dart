@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:riverpod/riverpod.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import '../models/pepito_activity.dart';
@@ -91,25 +92,33 @@ final realTimeActivitiesProvider = StreamProvider<PepitoActivity>((ref) {
 });
 
 // Provider para el estado de conexión SSE
-final sseConnectionProvider = StateProvider<bool>((ref) {
-  final sseService = ref.read(sseServiceProvider);
-  return sseService.isConnected;
+class SSEConnectionNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    final sseService = ref.read(sseServiceProvider);
+    return sseService.isConnected;
+  }
+}
+
+final sseConnectionProvider = NotifierProvider<SSEConnectionNotifier, bool>(() {
+  return SSEConnectionNotifier();
 });
 
 // Provider para el estado actual de Pépito
 // Provider para el estado actual con polling automático
-final pepitoStatusProvider = StateNotifierProvider<PepitoStatusNotifier, AsyncValue<PepitoStatus>>((ref) {
-  return PepitoStatusNotifier(ref);
+final pepitoStatusProvider = NotifierProvider<PepitoStatusNotifier, AsyncValue<PepitoStatus>>(() {
+  return PepitoStatusNotifier();
 });
 
 // Notifier que maneja el polling automático del estado
-class PepitoStatusNotifier extends StateNotifier<AsyncValue<PepitoStatus>> {
-  final Ref _ref;
+class PepitoStatusNotifier extends Notifier<AsyncValue<PepitoStatus>> {
   Timer? _pollingTimer;
   PepitoStatus? _lastStatus;
 
-  PepitoStatusNotifier(this._ref) : super(const AsyncValue.loading()) {
+  @override
+  AsyncValue<PepitoStatus> build() {
     _startPolling();
+    return const AsyncValue.loading();
   }
 
   void _startPolling() {
@@ -124,8 +133,8 @@ class PepitoStatusNotifier extends StateNotifier<AsyncValue<PepitoStatus>> {
 
   Future<void> _fetchStatus() async {
     try {
-      final apiService = _ref.read(apiServiceProvider);
-      final supabaseService = _ref.read(supabaseServiceProvider);
+      final apiService = ref.read(apiServiceProvider);
+      final supabaseService = ref.read(supabaseServiceProvider);
 
       final newStatus = await apiService.getCurrentStatus();
 
@@ -227,12 +236,6 @@ class PepitoStatusNotifier extends StateNotifier<AsyncValue<PepitoStatus>> {
     state = const AsyncValue.loading();
     await _fetchStatus();
   }
-
-  @override
-  void dispose() {
-    _pollingTimer?.cancel();
-    super.dispose();
-  }
 }
 
 // Función helper para manejar errores de conexión en web
@@ -330,22 +333,43 @@ final statisticsProvider = FutureProvider.family<Map<String, dynamic>, Statistic
 );
 
 // Provider para el estado de conexión
-final connectionStatusProvider = StateProvider<bool>((ref) => true);
+class ConnectionStatusNotifier extends Notifier<bool> {
+  @override
+  bool build() => true;
+}
+
+final connectionStatusProvider = NotifierProvider<ConnectionStatusNotifier, bool>(() {
+  return ConnectionStatusNotifier();
+});
 
 // Provider para el estado de carga
-final loadingProvider = StateProvider<bool>((ref) => false);
+class LoadingNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+}
+
+final loadingProvider = NotifierProvider<LoadingNotifier, bool>(() {
+  return LoadingNotifier();
+});
 
 // Provider para errores
-final errorProvider = StateProvider<String?>((ref) => null);
+class ErrorNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+}
+
+final errorProvider = NotifierProvider<ErrorNotifier, String?>(() {
+  return ErrorNotifier();
+});
 
 // Provider para la configuración de notificaciones
-final notificationSettingsProvider = StateNotifierProvider<NotificationSettingsNotifier, NotificationSettings>(
-  (ref) => NotificationSettingsNotifier(),
+final notificationSettingsProvider = NotifierProvider<NotificationSettingsNotifier, NotificationSettings>(
+  () => NotificationSettingsNotifier(),
 );
 
 // Provider para el filtro de actividades
-final activityFilterProvider = StateNotifierProvider<ActivityFilterNotifier, ActivityFilter>(
-  (ref) => ActivityFilterNotifier(),
+final activityFilterProvider = NotifierProvider<ActivityFilterNotifier, ActivityFilter>(
+  () => ActivityFilterNotifier(),
 );
 
 
@@ -498,8 +522,11 @@ class NotificationSettings {
   }
 }
 
-class NotificationSettingsNotifier extends StateNotifier<NotificationSettings> {
-  NotificationSettingsNotifier() : super(const NotificationSettings());
+class NotificationSettingsNotifier extends Notifier<NotificationSettings> {
+  @override
+  NotificationSettings build() {
+    return const NotificationSettings();
+  }
 
   void updateEnabled(bool enabled) {
     state = state.copyWith(enabled: enabled);
@@ -587,8 +614,11 @@ class ActivityFilter {
   }
 }
 
-class ActivityFilterNotifier extends StateNotifier<ActivityFilter> {
-  ActivityFilterNotifier() : super(const ActivityFilter());
+class ActivityFilterNotifier extends Notifier<ActivityFilter> {
+  @override
+  ActivityFilter build() {
+    return const ActivityFilter();
+  }
 
   void clearFilters() {
     state = const ActivityFilter();
@@ -622,12 +652,15 @@ enum AppThemeMode {
 }
 
 // Provider para el tema de la aplicación
-final themeProvider = StateNotifierProvider<ThemeNotifier, AppThemeMode>(
-  (ref) => ThemeNotifier(),
+final themeProvider = NotifierProvider<ThemeNotifier, AppThemeMode>(
+  () => ThemeNotifier(),
 );
 
-class ThemeNotifier extends StateNotifier<AppThemeMode> {
-  ThemeNotifier() : super(AppThemeMode.system);
+class ThemeNotifier extends Notifier<AppThemeMode> {
+  @override
+  AppThemeMode build() {
+    return AppThemeMode.system;
+  }
 
   void setThemeMode(AppThemeMode mode) {
     state = mode;
@@ -640,17 +673,17 @@ final refreshProvider = Provider<RefreshController>((ref) {
 });
 
 class RefreshController {
-  final Ref _ref;
+  final Ref ref;
   bool _isRefreshing = false; // Agregar flag de control
 
-  RefreshController(this._ref);
+  RefreshController(this.ref);
 
   Future<void> refreshStatus() async {
     if (_isRefreshing) return; // Evitar refreshes simultáneos
 
     _isRefreshing = true;
     try {
-      await _ref.read(pepitoStatusProvider.notifier).refresh();
+      await ref.read(pepitoStatusProvider.notifier).refresh();
     } finally {
       _isRefreshing = false;
     }
@@ -658,17 +691,17 @@ class RefreshController {
 
   Future<void> refreshTodayActivities() async {
     if (_isRefreshing) return;
-    _ref.invalidate(todayActivitiesProvider);
+    ref.invalidate(todayActivitiesProvider);
   }
 
   Future<void> refreshActivities() async {
     if (_isRefreshing) return;
-    _ref.invalidate(activitiesProvider);
+    ref.invalidate(activitiesProvider);
   }
 
   Future<void> refreshStatistics() async {
     if (_isRefreshing) return;
-    _ref.invalidate(statisticsProvider);
+    ref.invalidate(statisticsProvider);
   }
 
   Future<void> refreshAll() async {
@@ -677,16 +710,16 @@ class RefreshController {
     _isRefreshing = true;
     try {
       // Usar un pequeño delay entre refreshes para evitar sobrecarga
-      await _ref.read(pepitoStatusProvider.notifier).refresh();
+      await ref.read(pepitoStatusProvider.notifier).refresh();
       await Future.delayed(const Duration(milliseconds: 100));
 
-      _ref.invalidate(todayActivitiesProvider);
+      ref.invalidate(todayActivitiesProvider);
       await Future.delayed(const Duration(milliseconds: 100));
 
-      _ref.invalidate(activitiesProvider);
+      ref.invalidate(activitiesProvider);
       await Future.delayed(const Duration(milliseconds: 100));
 
-      _ref.invalidate(statisticsProvider);
+      ref.invalidate(statisticsProvider);
     } finally {
       _isRefreshing = false;
     }
@@ -711,13 +744,15 @@ final localizationServiceProvider = Provider<LocalizationService>((ref) {
 });
 
 // Provider para el idioma actual
-final localeProvider = StateNotifierProvider<LocaleNotifier, Locale>(
-  (ref) => LocaleNotifier(),
+final localeProvider = NotifierProvider<LocaleNotifier, Locale>(
+  () => LocaleNotifier(),
 );
 
-class LocaleNotifier extends StateNotifier<Locale> {
-  LocaleNotifier() : super(const Locale('es')) {
+class LocaleNotifier extends Notifier<Locale> {
+  @override
+  Locale build() {
     _loadStoredLocale();
+    return const Locale('es');
   }
 
   Future<void> _loadStoredLocale() async {

@@ -1122,7 +1122,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         return todayActivitiesAsync.when(
           data: (activities) => QuickStatsRow(
             todayActivities: activities,
-            status: statusAsync.valueOrNull,
+            status: statusAsync.value,
           ),
           loading: () => _buildLoadingStatsRow(),
           error: (error, stack) => const SizedBox.shrink(),

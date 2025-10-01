@@ -18,36 +18,37 @@ enum PepitoDataSource {
 }
 
 /// Provider para configurar el modo de operación (FIJO: Cloud Functions)
-final pepitoDataSourceProvider = StateProvider<PepitoDataSource>((ref) {
-  // Modo fijo: Solo Cloud Functions para producción
-  return PepitoDataSource.cloudFunctions;
+class PepitoDataSourceNotifier extends Notifier<PepitoDataSource> {
+  @override
+  PepitoDataSource build() {
+    // Modo fijo: Solo Cloud Functions para producción
+    return PepitoDataSource.cloudFunctions;
+  }
+}
+
+final pepitoDataSourceProvider = NotifierProvider<PepitoDataSourceNotifier, PepitoDataSource>(() {
+  return PepitoDataSourceNotifier();
 });
 
 /// Provider para el estado actual de Pépito con soporte híbrido
-final hybridPepitoStatusProvider = StateNotifierProvider<HybridPepitoStatusNotifier, AsyncValue<PepitoStatus>>((ref) {
-  return HybridPepitoStatusNotifier(ref);
+final hybridPepitoStatusProvider = NotifierProvider<HybridPepitoStatusNotifier, AsyncValue<PepitoStatus>>(() {
+  return HybridPepitoStatusNotifier();
 });
 
 /// Notifier híbrido que puede funcionar con polling local o Cloud Functions
-class HybridPepitoStatusNotifier extends StateNotifier<AsyncValue<PepitoStatus>> {
-  final Ref _ref;
+class HybridPepitoStatusNotifier extends Notifier<AsyncValue<PepitoStatus>> {
   Timer? _pollingTimer;
   StreamSubscription? _supabaseSubscription;
   PepitoStatus? _lastStatus;
-  
-  HybridPepitoStatusNotifier(this._ref) : super(const AsyncValue.loading()) {
+
+  @override
+  AsyncValue<PepitoStatus> build() {
     _initializeDataSource();
-    
-    // Escuchar cambios en el modo de operación
-    _ref.listen(pepitoDataSourceProvider, (previous, next) {
-      Logger.info('Cambiando modo de operación de $previous a $next');
-      _cleanup();
-      _initializeDataSource();
-    });
+    return const AsyncValue.loading();
   }
   
   void _initializeDataSource() {
-    final dataSource = _ref.read(pepitoDataSourceProvider);
+    final dataSource = ref.read(pepitoDataSourceProvider);
     
     switch (dataSource) {
       case PepitoDataSource.localPolling:
@@ -76,7 +77,7 @@ class HybridPepitoStatusNotifier extends StateNotifier<AsyncValue<PepitoStatus>>
   void _startSupabaseListening() {
     Logger.info('☁️ Iniciando modo Cloud Functions');
     
-    final supabaseService = _ref.read(supabaseServiceProvider);
+    final supabaseService = ref.read(supabaseServiceProvider);
     
     // Obtener estado inicial
     _getLatestFromSupabase();
@@ -130,7 +131,7 @@ class HybridPepitoStatusNotifier extends StateNotifier<AsyncValue<PepitoStatus>>
   /// Obtener el último estado desde Supabase
   Future<bool> _getLatestFromSupabase() async {
     try {
-      final supabaseService = _ref.read(supabaseServiceProvider);
+      final supabaseService = ref.read(supabaseServiceProvider);
       final activities = await supabaseService.getStatusHistory(limit: 1);
       
       if (activities.isNotEmpty) {
@@ -153,7 +154,7 @@ class HybridPepitoStatusNotifier extends StateNotifier<AsyncValue<PepitoStatus>>
   /// Verificar si ya hay datos de Cloud Functions disponibles
   Future<void> _checkForCloudFunctionData() async {
     try {
-      final supabaseService = _ref.read(supabaseServiceProvider);
+      final supabaseService = ref.read(supabaseServiceProvider);
       final activities = await supabaseService.getStatusHistory(limit: 1);
       
       if (activities.isNotEmpty) {
@@ -177,8 +178,8 @@ class HybridPepitoStatusNotifier extends StateNotifier<AsyncValue<PepitoStatus>>
   /// Obtener estado desde la API (modo polling local)
   Future<void> _fetchStatusFromAPI() async {
     try {
-      final apiService = _ref.read(apiServiceProvider);
-      final supabaseService = _ref.read(supabaseServiceProvider);
+      final apiService = ref.read(apiServiceProvider);
+      final supabaseService = ref.read(supabaseServiceProvider);
       
       final newStatus = await apiService.getCurrentStatus();
       
@@ -236,7 +237,7 @@ class HybridPepitoStatusNotifier extends StateNotifier<AsyncValue<PepitoStatus>>
   Future<void> refresh() async {
     state = const AsyncValue.loading();
     
-    final dataSource = _ref.read(pepitoDataSourceProvider);
+    final dataSource = ref.read(pepitoDataSourceProvider);
     
     switch (dataSource) {
       case PepitoDataSource.localPolling:
@@ -256,13 +257,7 @@ class HybridPepitoStatusNotifier extends StateNotifier<AsyncValue<PepitoStatus>>
       Logger.warning('Intento de cambiar modo en producción bloqueado. Solo Cloud Functions permitido.');
       return;
     }
-    _ref.read(pepitoDataSourceProvider.notifier).state = source;
-  }
-  
-  @override
-  void dispose() {
-    _cleanup();
-    super.dispose();
+    ref.read(pepitoDataSourceProvider.notifier).state = source;
   }
 }
 
