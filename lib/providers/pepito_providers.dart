@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:riverpod/riverpod.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import '../models/pepito_activity.dart';
@@ -118,6 +117,9 @@ class PepitoStatusNotifier extends Notifier<AsyncValue<PepitoStatus>> {
   @override
   AsyncValue<PepitoStatus> build() {
     _startPolling();
+    ref.onDispose(() {
+      _pollingTimer?.cancel();
+    });
     return const AsyncValue.loading();
   }
 
