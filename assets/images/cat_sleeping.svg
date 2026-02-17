@@ -1,46 +1,50 @@
 <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Cuerpo del gato durmiendo -->
-  <ellipse cx="60" cy="75" rx="35" ry="20" fill="#FF6B35" opacity="0.9"/>
+  <!-- Gato durmiendo con proporciones realistas, enrollado -->
   
-  <!-- Cabeza -->
-  <circle cx="60" cy="45" r="25" fill="#FF6B35"/>
+  <!-- Cuerpo enrollado (forma de croissant) -->
+  <path d="M35 72 Q30 55 42 48 Q55 42 70 48 Q85 55 88 70 Q90 82 78 88 Q60 95 42 88 Q32 84 35 72Z" fill="#FF6B35" opacity="0.9"/>
   
-  <!-- Orejas -->
-  <path d="M40 30 L35 15 L50 25 Z" fill="#FF6B35"/>
-  <path d="M80 30 L85 15 L70 25 Z" fill="#FF6B35"/>
-  <path d="M42 28 L40 20 L48 26 Z" fill="#FF8C42"/>
-  <path d="M78 28 L80 20 L72 26 Z" fill="#FF8C42"/>
+  <!-- Rayas sutiles en el cuerpo -->
+  <path d="M45 55 Q55 50 65 55" stroke="#E55A2B" stroke-width="1.5" fill="none" opacity="0.3"/>
+  <path d="M42 62 Q52 57 62 62" stroke="#E55A2B" stroke-width="1.5" fill="none" opacity="0.25"/>
+  <path d="M48 69 Q58 64 68 69" stroke="#E55A2B" stroke-width="1.5" fill="none" opacity="0.2"/>
   
-  <!-- Ojos cerrados -->
-  <path d="M50 40 Q55 45 60 40" stroke="#2C3E50" stroke-width="2" fill="none"/>
-  <path d="M60 40 Q65 45 70 40" stroke="#2C3E50" stroke-width="2" fill="none"/>
+  <!-- Cola envolviendo el cuerpo -->
+  <path d="M88 72 Q95 65 97 55 Q98 48 93 50 Q88 54 87 63" stroke="#FF6B35" stroke-width="5" fill="none" stroke-linecap="round"/>
   
-  <!-- Nariz -->
-  <path d="M58 48 L60 52 L62 48 Z" fill="#E74C3C"/>
+  <!-- Cabeza (apoyada en las patas, ligeramente más pequeña) -->
+  <ellipse cx="42" cy="52" rx="16" ry="14" fill="#FF6B35"/>
   
-  <!-- Boca sonriente -->
-  <path d="M60 52 Q55 58 50 55" stroke="#2C3E50" stroke-width="1.5" fill="none"/>
-  <path d="M60 52 Q65 58 70 55" stroke="#2C3E50" stroke-width="1.5" fill="none"/>
+  <!-- Orejas puntiagudas -->
+  <path d="M30 44 L26 28 L38 38 Z" fill="#FF6B35"/>
+  <path d="M54 44 L58 28 L46 38 Z" fill="#FF6B35"/>
+  <!-- Interior de las orejas -->
+  <path d="M32 42 L30 32 L36 39 Z" fill="#FF8C42"/>
+  <path d="M52 42 L54 32 L48 39 Z" fill="#FF8C42"/>
   
-  <!-- Cola curvada -->
-  <path d="M25 75 Q15 65 20 50 Q25 40 35 45" stroke="#FF6B35" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <!-- Ojos cerrados (líneas suaves curvas) -->
+  <path d="M34 48 Q38 52 42 48" stroke="#2C3E50" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M44 48 Q48 52 52 48" stroke="#2C3E50" stroke-width="1.5" fill="none" stroke-linecap="round"/>
   
-  <!-- Patas -->
-  <ellipse cx="45" cy="90" rx="6" ry="12" fill="#FF6B35"/>
-  <ellipse cx="75" cy="90" rx="6" ry="12" fill="#FF6B35"/>
+  <!-- Nariz pequeña -->
+  <path d="M41 53 L42 55 L43 53 Z" fill="#E74C3C"/>
   
-  <!-- Patitas -->
-  <ellipse cx="45" cy="100" rx="8" ry="5" fill="#FF8C42"/>
-  <ellipse cx="75" cy="100" rx="8" ry="5" fill="#FF8C42"/>
+  <!-- Boca sonriente dormida -->
+  <path d="M42 55 Q40 57 38 56" stroke="#2C3E50" stroke-width="1" fill="none" stroke-linecap="round"/>
+  <path d="M42 55 Q44 57 46 56" stroke="#2C3E50" stroke-width="1" fill="none" stroke-linecap="round"/>
   
-  <!-- Bigotes -->
-  <line x1="30" y1="45" x2="20" y2="42" stroke="#2C3E50" stroke-width="1"/>
-  <line x1="30" y1="50" x2="20" y2="50" stroke="#2C3E50" stroke-width="1"/>
-  <line x1="90" y1="45" x2="100" y2="42" stroke="#2C3E50" stroke-width="1"/>
-  <line x1="90" y1="50" x2="100" y2="50" stroke="#2C3E50" stroke-width="1"/>
+  <!-- Patas delanteras (donde apoya la cabeza) -->
+  <ellipse cx="38" cy="68" rx="5" ry="3" fill="#FF8C42"/>
+  <ellipse cx="48" cy="68" rx="5" ry="3" fill="#FF8C42"/>
+  
+  <!-- Bigotes suaves -->
+  <line x1="28" y1="50" x2="18" y2="48" stroke="#2C3E50" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+  <line x1="28" y1="54" x2="18" y2="55" stroke="#2C3E50" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+  <line x1="56" y1="50" x2="66" y2="48" stroke="#2C3E50" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+  <line x1="56" y1="54" x2="66" y2="55" stroke="#2C3E50" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
   
   <!-- Zzz para indicar sueño -->
-  <text x="85" y="25" font-family="Arial, sans-serif" font-size="12" fill="#6B7280" opacity="0.7">Z</text>
-  <text x="90" y="20" font-family="Arial, sans-serif" font-size="10" fill="#6B7280" opacity="0.5">z</text>
-  <text x="95" y="15" font-family="Arial, sans-serif" font-size="8" fill="#6B7280" opacity="0.3">z</text>
+  <text x="72" y="35" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#6B7280" opacity="0.6">Z</text>
+  <text x="80" y="27" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#6B7280" opacity="0.4">z</text>
+  <text x="86" y="21" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#6B7280" opacity="0.25">z</text>
 </svg>

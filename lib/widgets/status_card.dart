@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'cat_paw_icon.dart';
 import '../generated/app_localizations.dart';
 import '../models/pepito_activity.dart';
 import '../utils/date_utils.dart';
@@ -20,7 +21,7 @@ class StatusCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Card(
       margin: const EdgeInsets.all(16),
       elevation: 4,
@@ -61,11 +62,9 @@ class StatusCard extends StatelessWidget {
             color: Colors.white.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(
-            status.isHome ? Icons.home : Icons.pets,
-            size: 28,
-            color: Colors.white,
-          ),
+          child: status.isHome
+              ? const Icon(Icons.home, size: 28, color: Colors.white)
+              : const CatPawIcon(size: 28, color: Colors.white),
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -102,10 +101,7 @@ class StatusCard extends StatelessWidget {
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   )
-                : Icon(
-                    Icons.refresh,
-                    color: Colors.white,
-                  ),
+                : Icon(Icons.refresh, color: Colors.white),
           ),
       ],
     );
@@ -131,7 +127,9 @@ class StatusCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  status.isHome ? AppLocalizations.of(context)!.atHome : AppLocalizations.of(context)!.awayFromHome,
+                  status.isHome
+                      ? AppLocalizations.of(context)!.atHome
+                      : AppLocalizations.of(context)!.awayFromHome,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -139,7 +137,7 @@ class StatusCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  status.isHome 
+                  status.isHome
                       ? AppLocalizations.of(context)!.pepitoSafeAtHome
                       : AppLocalizations.of(context)!.pepitoExploring,
                   style: TextStyle(
@@ -188,11 +186,7 @@ class StatusCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(
-            icon,
-            color: Colors.white.withValues(alpha: 0.9),
-            size: 18,
-          ),
+          Icon(icon, color: Colors.white.withValues(alpha: 0.9), size: 18),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -254,7 +248,7 @@ class StatusCard extends StatelessWidget {
       );
     }
   }
-  
+
   // Métodos de modo demo removidos - ahora usamos datos locales
 }
 
@@ -262,17 +256,13 @@ class CompactStatusCard extends StatelessWidget {
   final PepitoStatus status;
   final VoidCallback? onTap;
 
-  const CompactStatusCard({
-    super.key,
-    required this.status,
-    this.onTap,
-  });
+  const CompactStatusCard({super.key, required this.status, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: InkWell(
@@ -286,9 +276,9 @@ class CompactStatusCard extends StatelessWidget {
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
               colors: [
-                status.isHome 
+                status.isHome
                     ? AppTheme.successColor.withValues(alpha: 0.1)
-                  : AppTheme.warningColor.withValues(alpha: 0.1),
+                    : AppTheme.warningColor.withValues(alpha: 0.1),
                 Colors.transparent,
               ],
             ),
@@ -299,18 +289,14 @@ class CompactStatusCard extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: status.isHome 
+                  color: status.isHome
                       ? AppTheme.successColor.withValues(alpha: 0.2)
                       : AppTheme.warningColor.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
-                  status.isHome ? Icons.home : Icons.pets,
-                  color: status.isHome 
-                      ? AppTheme.successColor
-                      : AppTheme.warningColor,
-                  size: 20,
-                ),
+                child: status.isHome
+                    ? Icon(Icons.home, color: AppTheme.successColor, size: 20)
+                    : CatPawIcon(color: AppTheme.warningColor, size: 20),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -318,7 +304,9 @@ class CompactStatusCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      status.isHome ? AppLocalizations.of(context)!.atHome : AppLocalizations.of(context)!.awayFromHome,
+                      status.isHome
+                          ? AppLocalizations.of(context)!.atHome
+                          : AppLocalizations.of(context)!.awayFromHome,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -363,8 +351,10 @@ class StatusIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = isHome ? AppTheme.successColor : AppTheme.warningColor;
-    final label = isHome ? AppLocalizations.of(context)!.atHome : AppLocalizations.of(context)!.away;
-    
+    final label = isHome
+        ? AppLocalizations.of(context)!.atHome
+        : AppLocalizations.of(context)!.away;
+
     if (showLabel) {
       return Row(
         mainAxisSize: MainAxisSize.min,
@@ -372,10 +362,7 @@ class StatusIndicator extends StatelessWidget {
           Container(
             width: size,
             height: size,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
           const SizedBox(width: 6),
           Text(
@@ -389,7 +376,7 @@ class StatusIndicator extends StatelessWidget {
         ],
       );
     }
-    
+
     return Container(
       width: size,
       height: size,

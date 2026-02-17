@@ -1,0 +1,14 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cat paw print - more elongated ovals for toe beans, smaller triangular palm pad -->
+  <!-- Main palm pad (smaller and more triangular than dog) -->
+  <path d="M12 18.5C9.5 18.5 8 16.5 8.5 14.5C9 12.5 10.5 11.5 12 11.5C13.5 11.5 15 12.5 15.5 14.5C16 16.5 14.5 18.5 12 18.5Z" fill="currentColor"/>
+  <!-- Toe beans - 4 elongated ovals, spread wider apart like a cat -->
+  <!-- Left outer toe -->
+  <ellipse cx="7.2" cy="9.5" rx="1.6" ry="2.3" transform="rotate(-20 7.2 9.5)" fill="currentColor"/>
+  <!-- Left inner toe -->
+  <ellipse cx="9.8" cy="7.8" rx="1.4" ry="2.2" transform="rotate(-8 9.8 7.8)" fill="currentColor"/>
+  <!-- Right inner toe -->
+  <ellipse cx="14.2" cy="7.8" rx="1.4" ry="2.2" transform="rotate(8 14.2 7.8)" fill="currentColor"/>
+  <!-- Right outer toe -->
+  <ellipse cx="16.8" cy="9.5" rx="1.6" ry="2.3" transform="rotate(20 16.8 9.5)" fill="currentColor"/>
+</svg>

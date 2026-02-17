@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../widgets/cat_paw_icon.dart';
 import '../providers/pepito_providers.dart';
 import '../widgets/status_card.dart';
 import '../widgets/activity_card.dart';
@@ -28,17 +29,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
   late RefreshController _refreshController;
-  
+
   // Agregar debouncing
   Timer? _refreshDebounceTimer;
   bool _isRefreshing = false;
-
 
   // Método temporal para manejar el error de inserción
   void _handleDatabaseError() {
     // Verificar si el error persiste y mostrar información útil
     if (kDebugMode) print('DEBUG: Verificando estructura de datos...');
-    
+
     // Agregar validación adicional en el próximo refresh
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -58,15 +58,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     _tabController = TabController(length: 4, vsync: this);
     _handleDatabaseError(); // Agregar esta línea
   }
-  
+
   // Método de refresh con debouncing
   Future<void> _debouncedRefresh() async {
     if (_isRefreshing) return;
-    
+
     _refreshDebounceTimer?.cancel();
     _refreshDebounceTimer = Timer(const Duration(milliseconds: 500), () async {
       if (_isRefreshing) return;
-      
+
       _isRefreshing = true;
       try {
         await _refreshController.refreshAll();
@@ -80,7 +80,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   void didChangeDependencies() {
     super.didChangeDependencies();
     _refreshController = ref.read(refreshProvider);
-    
+
     // Initialize data loading
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _refreshController.refreshAll();
@@ -105,21 +105,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       return _buildMaterialUI(context);
     }
   }
-  
+
   Widget _buildWebUI(BuildContext context) {
     final colors = AppTheme.getColors(context);
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     // Breakpoints más seguros y lógicos
     final isLargeScreen = screenWidth >= 1200;
     final isMediumScreen = screenWidth >= 768 && screenWidth < 1200;
     final isSmallScreen = screenWidth < 768;
-    
+
     return Scaffold(
       body: Row(
         children: [
           // Navegación lateral para web
-          _buildWebSidebar(colors, isLargeScreen, isMediumScreen, isSmallScreen),
+          _buildWebSidebar(
+            colors,
+            isLargeScreen,
+            isMediumScreen,
+            isSmallScreen,
+          ),
           // Contenido principal
           Expanded(
             child: TabBarView(
@@ -136,10 +141,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ),
     );
   }
-  
+
   Widget _buildMaterialUI(BuildContext context) {
     final colors = AppTheme.getColors(context);
-    
+
     return Scaffold(
       body: TabBarView(
         controller: _tabController,
@@ -153,8 +158,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       bottomNavigationBar: _buildBottomNavigationBar(colors),
     );
   }
-  
-  Widget _buildWebSidebar(AppColors colors, bool isLargeScreen, bool isMediumScreen, bool isSmallScreen) {
+
+  Widget _buildWebSidebar(
+    AppColors colors,
+    bool isLargeScreen,
+    bool isMediumScreen,
+    bool isSmallScreen,
+  ) {
     // Asegurar que minWidth <= maxWidth
     double sidebarWidth;
     double minSidebarWidth;
@@ -162,7 +172,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     double fontSize;
     double iconSize;
     double headerPadding;
-    
+
     if (isSmallScreen) {
       sidebarWidth = 64.0;
       minSidebarWidth = 64.0; // Mismo valor que sidebarWidth
@@ -185,43 +195,51 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       iconSize = 20.0;
       headerPadding = 16.0;
     }
-    
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       width: sidebarWidth,
       constraints: BoxConstraints(
         minWidth: minSidebarWidth, // CORREGIDO
-        maxWidth: sidebarWidth,    // CORREGIDO
+        maxWidth: sidebarWidth, // CORREGIDO
       ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: isDark 
+          colors: isDark
               ? [
-                  AppTheme.expressivePurple.withValues(alpha: 0.08), // M3E: Gradiente expresivo
+                  AppTheme.expressivePurple.withValues(
+                    alpha: 0.08,
+                  ), // M3E: Gradiente expresivo
                   AppTheme.expressiveTeal.withValues(alpha: 0.05),
                   colors.surface,
                 ]
               : [
-                  AppTheme.primaryOrange.withValues(alpha: 0.06), // M3E: Gradiente expresivo
+                  AppTheme.primaryOrange.withValues(
+                    alpha: 0.06,
+                  ), // M3E: Gradiente expresivo
                   AppTheme.expressiveTeal.withValues(alpha: 0.04),
                   const Color(0xFFFAFAFA),
                 ],
         ),
         border: Border(
           right: BorderSide(
-            color: isDark 
-                ? AppTheme.expressiveTeal.withValues(alpha: 0.3) // M3E: Borde colorido
+            color: isDark
+                ? AppTheme.expressiveTeal.withValues(
+                    alpha: 0.3,
+                  ) // M3E: Borde colorido
                 : AppTheme.primaryOrange.withValues(alpha: 0.2),
             width: 2, // M3E: Borde más prominente
           ),
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark 
-                ? AppTheme.expressivePurple.withValues(alpha: 0.2) // M3E: Sombra colorida
+            color: isDark
+                ? AppTheme.expressivePurple.withValues(
+                    alpha: 0.2,
+                  ) // M3E: Sombra colorida
                 : AppTheme.primaryOrange.withValues(alpha: 0.15),
             blurRadius: 16, // M3E: Sombra más expresiva
             offset: const Offset(3, 0),
@@ -235,30 +253,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           Container(
             padding: EdgeInsets.all(headerPadding),
             child: Row(
-              mainAxisAlignment: isSmallScreen ? MainAxisAlignment.center : MainAxisAlignment.start,
+              mainAxisAlignment: isSmallScreen
+                  ? MainAxisAlignment.center
+                  : MainAxisAlignment.start,
               children: [
                 Container(
-                  padding: EdgeInsets.all(isSmallScreen ? 12 : 14), // M3E: Padding más expresivo
+                  padding: EdgeInsets.all(
+                    isSmallScreen ? 12 : 14,
+                  ), // M3E: Padding más expresivo
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        AppTheme.primaryOrange.withValues(alpha: 0.2), // M3E: Gradiente expresivo
+                        AppTheme.primaryOrange.withValues(
+                          alpha: 0.2,
+                        ), // M3E: Gradiente expresivo
                         AppTheme.expressiveTeal.withValues(alpha: 0.15),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20), // M3E: Bordes más expresivos
+                    borderRadius: BorderRadius.circular(
+                      isSmallScreen ? 16 : 20,
+                    ), // M3E: Bordes más expresivos
                     boxShadow: [
                       BoxShadow(
-                        color: AppTheme.primaryOrange.withValues(alpha: 0.3), // M3E: Sombra colorida
+                        color: AppTheme.primaryOrange.withValues(
+                          alpha: 0.3,
+                        ), // M3E: Sombra colorida
                         blurRadius: 8,
                         offset: Offset(0, 4),
                       ),
                     ],
                   ),
-                  child: Icon(
-                    Icons.pets,
+                  child: CatPawIcon(
                     color: AppTheme.primaryOrange,
                     size: iconSize * 1.1, // M3E: Icono más prominente
                   ),
@@ -275,7 +302,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           style: TextStyle(
                             fontSize: fontSize + 2,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? colors.onSurface : const Color(0xFF1F2937),
+                            color: isDark
+                                ? colors.onSurface
+                                : const Color(0xFF1F2937),
                           ),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
@@ -285,7 +314,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             'Dashboard',
                             style: TextStyle(
                               fontSize: fontSize - 2,
-                              color: isDark 
+                              color: isDark
                                   ? colors.onSurface.withValues(alpha: 0.6)
                                   : const Color(0xFF6B7280),
                             ),
@@ -357,7 +386,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             child: Consumer(
               builder: (context, ref, child) {
                 final isLoading = ref.watch(loadingProvider);
-                
+
                 if (isSmallScreen) {
                   // Solo icono para pantallas pequeñas
                   return Center(
@@ -376,7 +405,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           : Icon(Icons.refresh, size: iconSize - 2),
                       tooltip: 'Actualizar',
                       style: IconButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF6B35).withValues(alpha: 0.1),
+                        backgroundColor: const Color(
+                          0xFFFF6B35,
+                        ).withValues(alpha: 0.1),
                         foregroundColor: const Color(0xFFFF6B35),
                         minimumSize: Size(iconSize + 16, iconSize + 16),
                         padding: EdgeInsets.all(8),
@@ -384,7 +415,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     ),
                   );
                 }
-                
+
                 return SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
@@ -422,7 +453,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ),
     );
   }
-  
+
   Widget _buildWebNavItem({
     required IconData icon,
     required IconData selectedIcon,
@@ -434,11 +465,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     required double iconSize,
   }) {
     final isSelected = _tabController.index == index;
-    
+
     if (isSmallScreen) {
       // Para pantallas pequeñas, mostrar solo iconos centrados
       return Container(
-        margin: const EdgeInsets.symmetric(vertical: 4), // M3E: Espaciado más expresivo
+        margin: const EdgeInsets.symmetric(
+          vertical: 4,
+        ), // M3E: Espaciado más expresivo
         child: Tooltip(
           message: label,
           child: InkWell(
@@ -447,32 +480,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 _tabController.animateTo(index);
               });
             },
-            borderRadius: BorderRadius.circular(18), // M3E: Bordes más expresivos
+            borderRadius: BorderRadius.circular(
+              18,
+            ), // M3E: Bordes más expresivos
             child: Container(
               height: iconSize + 32, // M3E: Altura más expresiva
               width: double.infinity,
               decoration: BoxDecoration(
-                gradient: isSelected 
+                gradient: isSelected
                     ? LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          AppTheme.primaryOrange.withValues(alpha: 0.2), // M3E: Gradiente expresivo
+                          AppTheme.primaryOrange.withValues(
+                            alpha: 0.2,
+                          ), // M3E: Gradiente expresivo
                           AppTheme.expressiveTeal.withValues(alpha: 0.15),
                         ],
                       )
                     : null,
-                borderRadius: BorderRadius.circular(18), // M3E: Bordes más expresivos
-                border: isSelected 
+                borderRadius: BorderRadius.circular(
+                  18,
+                ), // M3E: Bordes más expresivos
+                border: isSelected
                     ? Border.all(
-                        color: AppTheme.primaryOrange.withValues(alpha: 0.3), // M3E: Borde colorido
+                        color: AppTheme.primaryOrange.withValues(
+                          alpha: 0.3,
+                        ), // M3E: Borde colorido
                         width: 2,
                       )
                     : null,
-                boxShadow: isSelected 
+                boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color: AppTheme.primaryOrange.withValues(alpha: 0.2), // M3E: Sombra colorida
+                          color: AppTheme.primaryOrange.withValues(
+                            alpha: 0.2,
+                          ), // M3E: Sombra colorida
                           blurRadius: 8,
                           offset: Offset(0, 4),
                         ),
@@ -485,8 +528,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   color: isSelected
                       ? AppTheme.primaryOrange
                       : (Theme.of(context).brightness == Brightness.dark
-                          ? AppTheme.getColors(context).onSurface.withValues(alpha: 0.6)
-                          : const Color(0xFF6B7280)),
+                            ? AppTheme.getColors(
+                                context,
+                              ).onSurface.withValues(alpha: 0.6)
+                            : const Color(0xFF6B7280)),
                   size: iconSize * 1.1, // M3E: Icono más prominente
                 ),
               ),
@@ -495,31 +540,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         ),
       );
     }
-    
+
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 3), // M3E: Espaciado más expresivo
+      margin: const EdgeInsets.symmetric(
+        vertical: 3,
+      ), // M3E: Espaciado más expresivo
       decoration: BoxDecoration(
-        gradient: isSelected 
+        gradient: isSelected
             ? LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  AppTheme.primaryOrange.withValues(alpha: 0.15), // M3E: Gradiente expresivo
+                  AppTheme.primaryOrange.withValues(
+                    alpha: 0.15,
+                  ), // M3E: Gradiente expresivo
                   AppTheme.expressiveTeal.withValues(alpha: 0.1),
                 ],
               )
             : null,
         borderRadius: BorderRadius.circular(20), // M3E: Bordes más expresivos
-        border: isSelected 
+        border: isSelected
             ? Border.all(
-                color: AppTheme.primaryOrange.withValues(alpha: 0.3), // M3E: Borde colorido
+                color: AppTheme.primaryOrange.withValues(
+                  alpha: 0.3,
+                ), // M3E: Borde colorido
                 width: 2,
               )
             : null,
-        boxShadow: isSelected 
+        boxShadow: isSelected
             ? [
                 BoxShadow(
-                  color: AppTheme.primaryOrange.withValues(alpha: 0.2), // M3E: Sombra colorida
+                  color: AppTheme.primaryOrange.withValues(
+                    alpha: 0.2,
+                  ), // M3E: Sombra colorida
                   blurRadius: 8,
                   offset: Offset(0, 4),
                 ),
@@ -531,7 +584,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         leading: Container(
           padding: EdgeInsets.all(8), // M3E: Padding para el icono
           decoration: BoxDecoration(
-            gradient: isSelected 
+            gradient: isSelected
                 ? LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -541,15 +594,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     ],
                   )
                 : null,
-            borderRadius: BorderRadius.circular(12), // M3E: Bordes expresivos para icono
+            borderRadius: BorderRadius.circular(
+              12,
+            ), // M3E: Bordes expresivos para icono
           ),
           child: Icon(
             isSelected ? selectedIcon : icon,
             color: isSelected
                 ? AppTheme.primaryOrange
                 : (Theme.of(context).brightness == Brightness.dark
-                    ? AppTheme.getColors(context).onSurface.withValues(alpha: 0.6)
-                    : const Color(0xFF6B7280)),
+                      ? AppTheme.getColors(
+                          context,
+                        ).onSurface.withValues(alpha: 0.6)
+                      : const Color(0xFF6B7280)),
             size: iconSize * 1.1, // M3E: Icono más prominente
           ),
         ),
@@ -557,13 +614,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ? Text(
                 label,
                 style: TextStyle(
-                  fontSize: fontSize * 1.05, // M3E: Texto ligeramente más grande
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500, // M3E: Peso más expresivo
+                  fontSize:
+                      fontSize * 1.05, // M3E: Texto ligeramente más grande
+                  fontWeight: isSelected
+                      ? FontWeight.w700
+                      : FontWeight.w500, // M3E: Peso más expresivo
                   color: isSelected
                       ? AppTheme.primaryOrange
                       : (Theme.of(context).brightness == Brightness.dark
-                          ? AppTheme.getColors(context).onSurface
-                          : const Color(0xFF374151)),
+                            ? AppTheme.getColors(context).onSurface
+                            : const Color(0xFF374151)),
                   letterSpacing: 0.5, // M3E: Espaciado de letras expresivo
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -587,7 +647,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ),
     );
   }
-  
+
   Widget _buildFluentUI(BuildContext context) {
     return fluent.NavigationView(
       pane: fluent.NavigationPane(
@@ -639,8 +699,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 child: isLargeScreen
                     ? _buildLargeScreenLayout()
                     : isMediumScreen
-                        ? _buildMediumScreenLayout()
-                        : _buildSmallScreenLayout(),
+                    ? _buildMediumScreenLayout()
+                    : _buildSmallScreenLayout(),
               ),
             ),
           ),
@@ -648,7 +708,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ),
     );
   }
-  
+
   Widget _buildHomeTab() {
     return RefreshIndicator(
       onRefresh: () async {
@@ -675,7 +735,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ),
     );
   }
-  
+
   Widget _buildWebAppBar() {
     return SliverAppBar(
       expandedHeight: 120,
@@ -709,16 +769,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     width: 1,
                   ),
                 ),
-                child: Icon(
-                  Icons.pets,
-                  size: 32,
-                  color: AppTheme.primaryColor,
-                ),
+                child: CatPawIcon(size: 32, color: AppTheme.primaryColor),
               ),
               const SizedBox(width: 20),
               // Información del dashboard - CORREGIDO
-              Expanded( // Cambio de Flexible a Expanded
-                child: LayoutBuilder( // Agregar LayoutBuilder para manejar constraints
+              Expanded(
+                // Cambio de Flexible a Expanded
+                child: LayoutBuilder(
+                  // Agregar LayoutBuilder para manejar constraints
                   builder: (context, constraints) {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -728,7 +786,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         // Título con overflow controlado
                         ConstrainedBox(
                           constraints: BoxConstraints(
-                            maxHeight: constraints.maxHeight * 0.6, // Máximo 60% del espacio
+                            maxHeight:
+                                constraints.maxHeight *
+                                0.6, // Máximo 60% del espacio
                           ),
                           child: FittedBox(
                             fit: BoxFit.scaleDown,
@@ -749,14 +809,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         // Subtítulo con overflow controlado
                         ConstrainedBox(
                           constraints: BoxConstraints(
-                            maxHeight: constraints.maxHeight * 0.3, // Máximo 30% del espacio
+                            maxHeight:
+                                constraints.maxHeight *
+                                0.3, // Máximo 30% del espacio
                           ),
                           child: Text(
                             AppLocalizations.of(context)!.appDescription,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w400,
-                              color: AppTheme.getColors(context).onSurface.withValues(alpha: 0.7),
+                              color: AppTheme.getColors(
+                                context,
+                              ).onSurface.withValues(alpha: 0.7),
                               height: 1.3,
                             ),
                             overflow: TextOverflow.ellipsis, // Agregar ellipsis
@@ -811,27 +875,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ),
     );
   }
-  
+
   Widget _buildLargeScreenLayout() {
     return Column(
       children: [
         // Sección de estado principal - ancho completo
         _buildStatusSection(),
         const SizedBox(height: 32),
-        
+
         // Estadísticas rápidas - ancho completo
         _buildQuickStats(),
         const SizedBox(height: 32),
-        
+
         // Layout de dos columnas para el resto del contenido
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Columna principal (2/3) - Actividades recientes
-            Expanded(
-              flex: 2,
-              child: _buildRecentActivities(),
-            ),
+            Expanded(flex: 2, child: _buildRecentActivities()),
             const SizedBox(width: 32),
             // Columna lateral (1/3) - Acciones e insights
             Expanded(
@@ -849,37 +910,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ],
     );
   }
-  
+
   Widget _buildMediumScreenLayout() {
     return Column(
       children: [
         // Sección de estado - ancho completo
         _buildStatusSection(),
         const SizedBox(height: 24),
-        
+
         // Estadísticas rápidas
         _buildQuickStats(),
         const SizedBox(height: 24),
-        
+
         // Layout de dos columnas para actividades y acciones
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              flex: 2,
-              child: _buildRecentActivities(),
-            ),
+            Expanded(flex: 2, child: _buildRecentActivities()),
             const SizedBox(width: 20),
-            Expanded(
-              flex: 1,
-              child: _buildQuickActions(),
-            ),
+            Expanded(flex: 1, child: _buildQuickActions()),
           ],
         ),
       ],
     );
   }
-  
+
   Widget _buildSmallScreenLayout() {
     return Column(
       children: [
@@ -893,7 +948,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ],
     );
   }
-  
+
   Widget _buildWebInsights() {
     return Card(
       child: Padding(
@@ -903,11 +958,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.insights,
-                  color: AppTheme.primaryColor,
-                  size: 20,
-                ),
+                Icon(Icons.insights, color: AppTheme.primaryColor, size: 20),
                 const SizedBox(width: 8),
                 Text(
                   'Insights',
@@ -924,7 +975,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               builder: (context, ref, child) {
                 final statusAsync = ref.watch(pepitoStatusProvider);
                 final todayActivitiesAsync = ref.watch(todayActivitiesProvider);
-                
+
                 return Column(
                   children: [
                     _buildInsightItem(
@@ -933,7 +984,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       value: statusAsync.when(
                         data: (status) => _formatLastActivity(status.lastSeen),
                         loading: () => AppLocalizations.of(context)!.loading,
-                        error: (error, stackTrace) => AppLocalizations.of(context)!.error,
+                        error: (error, stackTrace) =>
+                            AppLocalizations.of(context)!.error,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -951,9 +1003,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       icon: Icons.trending_up,
                       title: AppLocalizations.of(context)!.status,
                       value: statusAsync.when(
-                        data: (status) => status.isHome ? AppLocalizations.of(context)!.atHome : AppLocalizations.of(context)!.awayFromHome,
+                        data: (status) => status.isHome
+                            ? AppLocalizations.of(context)!.atHome
+                            : AppLocalizations.of(context)!.awayFromHome,
                         loading: () => '...',
-                        error: (error, stackTrace) => AppLocalizations.of(context)!.error,
+                        error: (error, stackTrace) =>
+                            AppLocalizations.of(context)!.error,
                       ),
                     ),
                   ],
@@ -965,7 +1020,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ),
     );
   }
-  
+
   Widget _buildInsightItem({
     required IconData icon,
     required String title,
@@ -979,11 +1034,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             color: AppTheme.primaryColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(
-            icon,
-            size: 16,
-            color: AppTheme.primaryColor,
-          ),
+          child: Icon(icon, size: 16, color: AppTheme.primaryColor),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -994,7 +1045,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 title,
                 style: TextStyle(
                   fontSize: 12,
-                  color: AppTheme.getColors(context).onSurface.withValues(alpha: 0.7),
+                  color: AppTheme.getColors(
+                    context,
+                  ).onSurface.withValues(alpha: 0.7),
                 ),
               ),
               Text(
@@ -1011,12 +1064,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ],
     );
   }
-  
+
   String _formatLastActivity(DateTime? lastActivity) {
     if (lastActivity == null) return AppLocalizations.of(context)!.noActivity;
     final now = DateTime.now();
     final difference = now.difference(lastActivity);
-    
+
     if (difference.inMinutes < 1) {
       return AppLocalizations.of(context)!.justNow;
     } else if (difference.inHours < 1) {
@@ -1027,7 +1080,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       return AppLocalizations.of(context)!.daysAgo(difference.inDays);
     }
   }
-  
+
   Widget _buildAppBar() {
     return SliverAppBar(
       expandedHeight: 120,
@@ -1037,10 +1090,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       flexibleSpace: FlexibleSpaceBar(
         title: const Text(
           'Pépito App',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         background: Container(
           decoration: BoxDecoration(
@@ -1053,13 +1103,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ],
             ),
           ),
-          child: const Center(
-            child: Icon(
-              Icons.pets,
-              size: 48,
-              color: Colors.white,
-            ),
-          ),
+          child: const Center(child: CatPawIcon(size: 48, color: Colors.white)),
         ),
       ),
       actions: [
@@ -1079,10 +1123,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
-                  : const Icon(
-                      Icons.refresh,
-                      color: Colors.white,
-                    ),
+                  : const Icon(Icons.refresh, color: Colors.white),
             );
           },
         ),
@@ -1095,11 +1136,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       builder: (context, ref, child) {
         final statusAsync = ref.watch(pepitoStatusProvider);
         final error = ref.watch(errorProvider);
-        
+
         if (error != null) {
           return _buildErrorCard(error);
         }
-        
+
         return statusAsync.when(
           data: (status) => StatusCard(
             status: status,
@@ -1118,7 +1159,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       builder: (context, ref, child) {
         final todayActivitiesAsync = ref.watch(todayActivitiesProvider);
         final statusAsync = ref.watch(pepitoStatusProvider);
-        
+
         return todayActivitiesAsync.when(
           data: (activities) => QuickStatsRow(
             todayActivities: activities,
@@ -1139,20 +1180,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         padding: const EdgeInsets.all(20),
         child: Consumer(
           builder: (context, ref, child) {
-            final activitiesAsync = ref.watch(activitiesProvider(
-              const ActivitiesParams(limit: 5, offset: 0),
-            ));
-            
+            final activitiesAsync = ref.watch(
+              activitiesProvider(const ActivitiesParams(limit: 5, offset: 0)),
+            );
+
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    Icon(
-                      Icons.history,
-                      color: AppTheme.primaryColor,
-                      size: 24,
-                    ),
+                    Icon(Icons.history, color: AppTheme.primaryColor, size: 24),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
@@ -1172,10 +1209,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         if (activities.isNotEmpty) {
                           final now = DateTime.now();
                           final hasRecentActivity = activities.any((activity) {
-                            final difference = now.difference(activity.dateTime);
+                            final difference = now.difference(
+                              activity.dateTime,
+                            );
                             return difference.inMinutes < 10;
                           });
-                          
+
                           if (hasRecentActivity) {
                             return HeartBeatWidget(
                               size: 20,
@@ -1207,20 +1246,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     }
                     return Column(
                       children: activities
-                          .map((activity) => Padding(
-                                padding: const EdgeInsets.only(bottom: 8),
-                                child: ActivityCard(
-                                  activity: activity,
-                                  compact: true,
-                                  showDate: false,
-                                  onTap: () => _showActivityDetails(activity),
-                                ),
-                              ))
+                          .map(
+                            (activity) => Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: ActivityCard(
+                                activity: activity,
+                                compact: true,
+                                showDate: false,
+                                onTap: () => _showActivityDetails(activity),
+                              ),
+                            ),
+                          )
                           .toList(),
                     );
                   },
                   loading: () => _buildLoadingActivities(),
-                  error: (error, stack) => _buildErrorActivities(error.toString()),
+                  error: (error, stack) =>
+                      _buildErrorActivities(error.toString()),
                 ),
               ],
             );
@@ -1241,11 +1283,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.flash_on,
-                  color: AppTheme.primaryColor,
-                  size: 24,
-                ),
+                Icon(Icons.flash_on, color: AppTheme.primaryColor, size: 24),
                 const SizedBox(width: 8),
                 Text(
                   'Acciones rápidas',
@@ -1313,10 +1351,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withValues(alpha: 0.2),
-          width: 1,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -1341,11 +1376,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
-                    icon,
-                    color: color,
-                    size: 24,
-                  ),
+                  child: Icon(icon, color: color, size: 24),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -1365,7 +1396,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         subtitle,
                         style: TextStyle(
                           fontSize: 13,
-                          color: AppTheme.getColors(context).onSurface.withValues(alpha: 0.7),
+                          color: AppTheme.getColors(
+                            context,
+                          ).onSurface.withValues(alpha: 0.7),
                         ),
                       ),
                     ],
@@ -1429,9 +1462,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       child: Container(
         height: 200,
         padding: const EdgeInsets.all(20),
-        child: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        child: const Center(child: CircularProgressIndicator()),
       ),
     );
   }
@@ -1447,9 +1478,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               child: Container(
                 height: 100,
                 padding: const EdgeInsets.all(16),
-                child: const Center(
-                  child: CircularProgressIndicator(),
-                ),
+                child: const Center(child: CircularProgressIndicator()),
               ),
             ),
           ),
@@ -1467,9 +1496,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           child: Container(
             height: 80,
             padding: const EdgeInsets.all(16),
-            child: const Center(
-              child: CircularProgressIndicator(),
-            ),
+            child: const Center(child: CircularProgressIndicator()),
           ),
         ),
       ),
@@ -1484,11 +1511,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 48,
-              color: AppTheme.errorColor,
-            ),
+            Icon(Icons.error_outline, size: 48, color: AppTheme.errorColor),
             const SizedBox(height: 16),
             Text(
               'Error al cargar datos',
@@ -1503,7 +1526,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               error,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: AppTheme.getColors(context).onSurface.withValues(alpha: 0.7),
+                color: AppTheme.getColors(
+                  context,
+                ).onSurface.withValues(alpha: 0.7),
               ),
             ),
             const SizedBox(height: 16),
@@ -1524,10 +1549,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Icon(
-              Icons.error_outline,
-              color: AppTheme.errorColor,
-            ),
+            Icon(Icons.error_outline, color: AppTheme.errorColor),
             const SizedBox(height: 8),
             Text(
               'Error al cargar actividades',
@@ -1541,7 +1563,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               error,
               style: TextStyle(
                 fontSize: 12,
-                color: AppTheme.getColors(context).onSurface.withValues(alpha: 0.7),
+                color: AppTheme.getColors(
+                  context,
+                ).onSurface.withValues(alpha: 0.7),
               ),
             ),
           ],
@@ -1586,7 +1610,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
-                color: AppTheme.getColors(context).onSurface.withValues(alpha: 0.7),
+                color: AppTheme.getColors(
+                  context,
+                ).onSurface.withValues(alpha: 0.7),
               ),
             ),
             const SizedBox(height: 8),
@@ -1594,7 +1620,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               AppLocalizations.of(context)!.pepitoActivitiesWillAppearHere,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: AppTheme.getColors(context).onSurface.withValues(alpha: 0.5),
+                color: AppTheme.getColors(
+                  context,
+                ).onSurface.withValues(alpha: 0.5),
               ),
             ),
           ],
@@ -1612,9 +1640,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         height: MediaQuery.of(context).size.height * 0.7,
         decoration: BoxDecoration(
           color: AppTheme.getColors(context).surface,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(20),
-          ),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -1626,7 +1652,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppTheme.getColors(context).onSurface.withValues(alpha: 0.3),
+                    color: AppTheme.getColors(
+                      context,
+                    ).onSurface.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -1641,12 +1669,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 ),
               ),
               const SizedBox(height: 16),
-              Expanded(
-                child: ActivityCard(
-                  activity: activity,
-                  showDate: true,
-                ),
-              ),
+              Expanded(child: ActivityCard(activity: activity, showDate: true)),
             ],
           ),
         ),
@@ -1659,8 +1682,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final authorized = await AuthorizationService().requestAuthorization(
       context,
       operation: 'Limpiar Duplicados',
-      description: 'Esta operación eliminará las actividades duplicadas de Supabase. '
-                  'Se preservará la actividad más reciente de la API.',
+      description:
+          'Esta operación eliminará las actividades duplicadas de Supabase. '
+          'Se preservará la actividad más reciente de la API.',
     );
 
     if (!authorized) return;
@@ -1671,45 +1695,45 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         context: context,
         barrierDismissible: false,
         builder: (context) => const AlertDialog(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Limpiando Supabase...'),
-          ],
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Limpiando Supabase...'),
+            ],
+          ),
         ),
-      ),
-    );
+      );
     }
 
     try {
       // Ejecutar limpieza
       final success = await SupabaseCleanup.clearAllActivities();
-      
+
       // Cerrar diálogo de progreso
       if (mounted) Navigator.of(context).pop();
-      
+
       // Mostrar resultado
-       if (mounted) {
-         showDialog(
-           context: context,
-           builder: (context) => AlertDialog(
-             title: Text(success ? 'Éxito' : 'Error'),
-             content: Text(
-               success 
-                 ? 'Supabase limpiado exitosamente. Las actividades duplicadas han sido eliminadas.'
-                : 'Error durante la limpieza de Supabase.',
-             ),
-             actions: [
-               TextButton(
-                 onPressed: () => Navigator.of(context).pop(),
-                 child: const Text('OK'),
-               ),
-             ],
-           ),
-         );
-        
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(success ? 'Éxito' : 'Error'),
+            content: Text(
+              success
+                  ? 'Supabase limpiado exitosamente. Las actividades duplicadas han sido eliminadas.'
+                  : 'Error durante la limpieza de Supabase.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+
         // Refrescar datos si fue exitoso
         if (success) {
           _refreshController.refreshAll();
@@ -1718,7 +1742,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     } catch (e) {
       // Cerrar diálogo de progreso
       if (mounted) Navigator.of(context).pop();
-      
+
       // Mostrar error
       if (mounted) {
         showDialog(
@@ -1744,7 +1768,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('📊 Estadísticas'),
-        content: const Text('Navegando a la pestaña de estadísticas donde puedes ver análisis detallados de la actividad de Pépito.'),
+        content: const Text(
+          'Navegando a la pestaña de estadísticas donde puedes ver análisis detallados de la actividad de Pépito.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -1761,7 +1787,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('🔔 Configuración'),
-        content: const Text('Navegando a la configuración donde puedes ajustar las notificaciones y otros ajustes de la aplicación.'),
+        content: const Text(
+          'Navegando a la configuración donde puedes ajustar las notificaciones y otros ajustes de la aplicación.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/cat_paw_icon.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/pepito_providers.dart';
 import '../widgets/activity_card.dart';
@@ -58,7 +59,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
 
   Future<void> _loadMoreActivities() async {
     if (_isLoadingMore) return;
-    
+
     setState(() {
       _isLoadingMore = true;
     });
@@ -97,7 +98,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
     super.build(context);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Scaffold(
       body: CustomScrollView(
         controller: _scrollController,
@@ -109,9 +110,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
             const SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.all(16),
-                child: Center(
-                  child: CircularProgressIndicator(),
-                ),
+                child: Center(child: CircularProgressIndicator()),
               ),
             ),
         ],
@@ -122,12 +121,10 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
 
   Widget _buildAppBar(ColorScheme colorScheme) {
     return SliverAppBar(
-        title: Text(
-          AppLocalizations.of(context)!.activities,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+      title: Text(
+        AppLocalizations.of(context)!.activities,
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
       backgroundColor: AppTheme.primaryColor,
       foregroundColor: Colors.white,
       floating: true,
@@ -173,17 +170,17 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
       child: Consumer(
         builder: (context, ref, child) {
           final filter = ref.watch(activityFilterProvider);
-          
+
           if (!filter.hasActiveFilters) {
             return const SizedBox.shrink();
           }
-          
+
           final screenWidth = MediaQuery.of(context).size.width;
           final isSmallScreen = screenWidth <= 600;
           final margin = isSmallScreen ? 12.0 : 16.0;
           final padding = isSmallScreen ? 8.0 : 12.0;
           final fontSize = isSmallScreen ? 12.0 : 14.0;
-          
+
           return Container(
             margin: EdgeInsets.all(margin),
             padding: EdgeInsets.all(padding),
@@ -221,7 +218,9 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
                     const SizedBox(width: 8),
                     TextButton(
                       onPressed: () {
-                        ref.read(activityFilterProvider.notifier).clearFilters();
+                        ref
+                            .read(activityFilterProvider.notifier)
+                            .clearFilters();
                         _loadInitialData();
                       },
                       style: TextButton.styleFrom(
@@ -234,9 +233,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
                       ),
                       child: Text(
                         'Limpiar',
-                        style: TextStyle(
-                          fontSize: isSmallScreen ? 11 : 12,
-                        ),
+                        style: TextStyle(fontSize: isSmallScreen ? 11 : 12),
                       ),
                     ),
                   ],
@@ -252,7 +249,8 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
                             ? AppLocalizations.of(context)!.entries
                             : AppLocalizations.of(context)!.exits,
                         onRemove: () {
-                          ref.read(activityFilterProvider.notifier)
+                          ref
+                              .read(activityFilterProvider.notifier)
                               .setActivityType(null);
                           _loadInitialData();
                         },
@@ -261,7 +259,8 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
                       _buildFilterChip(
                         label: _formatDateRange(filter.dateRange!),
                         onRemove: () {
-                          ref.read(activityFilterProvider.notifier)
+                          ref
+                              .read(activityFilterProvider.notifier)
                               .setDateRange(null);
                           _loadInitialData();
                         },
@@ -284,7 +283,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
     final isSmallScreen = screenWidth <= 600;
     final fontSize = isSmallScreen ? 10.0 : 12.0;
     final iconSize = isSmallScreen ? 14.0 : 16.0;
-    
+
     return Chip(
       label: Text(
         label,
@@ -297,59 +296,58 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
       backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.2),
       deleteIconColor: AppTheme.primaryColor,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      visualDensity: isSmallScreen ? VisualDensity.compact : VisualDensity.standard,
+      visualDensity: isSmallScreen
+          ? VisualDensity.compact
+          : VisualDensity.standard,
     );
   }
 
   Widget _buildActivitiesList() {
     if (_allActivities.isEmpty && !_isLoadingMore) {
-      return SliverFillRemaining(
-        child: _buildEmptyState(),
-      );
+      return SliverFillRemaining(child: _buildEmptyState());
     }
 
     return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          if (index >= _allActivities.length) {
-            return null;
-          }
-          
-          final activity = _allActivities[index];
-          final isToday = AppDateUtils.isToday(activity.dateTime);
+      delegate: SliverChildBuilderDelegate((context, index) {
+        if (index >= _allActivities.length) {
+          return null;
+        }
+
+        final activity = _allActivities[index];
+        final isToday = AppDateUtils.isToday(activity.dateTime);
         final isYesterday = AppDateUtils.isYesterday(activity.dateTime);
-          
-          // Show date header for first item or when date changes
-          bool showDateHeader = false;
-          if (index == 0) {
-            showDateHeader = true;
-          } else {
-            final previousActivity = _allActivities[index - 1];
-            final currentDate = AppDateUtils.startOfDay(activity.dateTime);
-        final previousDate = AppDateUtils.startOfDay(previousActivity.dateTime);
-            showDateHeader = !currentDate.isAtSameMomentAs(previousDate);
-          }
-          
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (showDateHeader)
-                _buildDateHeader(
-                  context,
-                  activity.dateTime,
-                  isToday: isToday,
-                  isYesterday: isYesterday,
-                ),
-              ActivityCard(
-                activity: activity,
-                showDate: false,
-                onTap: () => _showActivityDetails(activity),
-              ),
-            ],
+
+        // Show date header for first item or when date changes
+        bool showDateHeader = false;
+        if (index == 0) {
+          showDateHeader = true;
+        } else {
+          final previousActivity = _allActivities[index - 1];
+          final currentDate = AppDateUtils.startOfDay(activity.dateTime);
+          final previousDate = AppDateUtils.startOfDay(
+            previousActivity.dateTime,
           );
-        },
-        childCount: _allActivities.length,
-      ),
+          showDateHeader = !currentDate.isAtSameMomentAs(previousDate);
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (showDateHeader)
+              _buildDateHeader(
+                context,
+                activity.dateTime,
+                isToday: isToday,
+                isYesterday: isYesterday,
+              ),
+            ActivityCard(
+              activity: activity,
+              showDate: false,
+              onTap: () => _showActivityDetails(activity),
+            ),
+          ],
+        );
+      }, childCount: _allActivities.length),
     );
   }
 
@@ -367,7 +365,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
     } else {
       dateText = AppDateUtils.formatDate(date);
     }
-    
+
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -393,10 +391,11 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.pets,
+            CatPawIcon(
               size: 64,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.3),
             ),
             const SizedBox(height: 24),
             Text(
@@ -404,15 +403,21 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              AppLocalizations.of(context)!.pepitoActivitiesWillAppearWhenAvailable,
+              AppLocalizations.of(
+                context,
+              )!.pepitoActivitiesWillAppearWhenAvailable,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.5),
               ),
             ),
             const SizedBox(height: 24),
@@ -454,9 +459,8 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _FilterBottomSheet(
-        onApplyFilters: _loadInitialData,
-      ),
+      builder: (context) =>
+          _FilterBottomSheet(onApplyFilters: _loadInitialData),
     );
   }
 
@@ -469,9 +473,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
         height: MediaQuery.of(context).size.height * 0.8,
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(20),
-          ),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -483,7 +485,9 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -491,17 +495,12 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
               const SizedBox(height: 16),
               Text(
                 AppLocalizations.of(context)!.activityDetails,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 16),
-              Expanded(
-                child: ActivityCard(
-                  activity: activity,
-                  showDate: true,
-                ),
-              ),
+              Expanded(child: ActivityCard(activity: activity, showDate: true)),
             ],
           ),
         ),
@@ -520,9 +519,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
 class _FilterBottomSheet extends ConsumerStatefulWidget {
   final VoidCallback onApplyFilters;
 
-  const _FilterBottomSheet({
-    required this.onApplyFilters,
-  });
+  const _FilterBottomSheet({required this.onApplyFilters});
 
   @override
   ConsumerState<_FilterBottomSheet> createState() => _FilterBottomSheetState();
@@ -531,7 +528,7 @@ class _FilterBottomSheet extends ConsumerStatefulWidget {
 class _FilterBottomSheetState extends ConsumerState<_FilterBottomSheet> {
   ActivityType? _selectedActivityType;
   DateRange? _selectedDateRange;
-  
+
   @override
   void initState() {
     super.initState();
@@ -544,14 +541,12 @@ class _FilterBottomSheetState extends ConsumerState<_FilterBottomSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Container(
       height: MediaQuery.of(context).size.height * 0.7,
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(20),
-        ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -593,9 +588,9 @@ class _FilterBottomSheetState extends ConsumerState<_FilterBottomSheet> {
       children: [
         Text(
           'Tipo de actividad',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w500,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 12),
         Wrap(
@@ -609,12 +604,14 @@ class _FilterBottomSheetState extends ConsumerState<_FilterBottomSheet> {
             _buildActivityTypeChip(
               label: AppLocalizations.of(context)!.entries,
               isSelected: _selectedActivityType == ActivityType.entrada,
-              onTap: () => setState(() => _selectedActivityType = ActivityType.entrada),
+              onTap: () =>
+                  setState(() => _selectedActivityType = ActivityType.entrada),
             ),
             _buildActivityTypeChip(
               label: AppLocalizations.of(context)!.exits,
               isSelected: _selectedActivityType == ActivityType.salida,
-              onTap: () => setState(() => _selectedActivityType = ActivityType.salida),
+              onTap: () =>
+                  setState(() => _selectedActivityType = ActivityType.salida),
             ),
           ],
         ),
@@ -642,9 +639,9 @@ class _FilterBottomSheetState extends ConsumerState<_FilterBottomSheet> {
       children: [
         Text(
           'Rango de fechas',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w500,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 12),
         Wrap(
@@ -678,7 +675,8 @@ class _FilterBottomSheetState extends ConsumerState<_FilterBottomSheet> {
           onPressed: _selectCustomDateRange,
           icon: const Icon(Icons.date_range),
           label: Text(
-            _selectedDateRange != null && !_isPredefinedRange(_selectedDateRange!)
+            _selectedDateRange != null &&
+                    !_isPredefinedRange(_selectedDateRange!)
                 ? 'Personalizado: ${_formatDateRange(_selectedDateRange!)}'
                 : 'Seleccionar rango personalizado',
           ),
@@ -691,10 +689,11 @@ class _FilterBottomSheetState extends ConsumerState<_FilterBottomSheet> {
     required String label,
     required DateRange dateRange,
   }) {
-    final isSelected = _selectedDateRange != null &&
+    final isSelected =
+        _selectedDateRange != null &&
         AppDateUtils.isSameDay(_selectedDateRange!.start, dateRange.start) &&
         AppDateUtils.isSameDay(_selectedDateRange!.end, dateRange.end);
-    
+
     return FilterChip(
       label: Text(label),
       selected: isSelected,
@@ -726,10 +725,12 @@ class _FilterBottomSheetState extends ConsumerState<_FilterBottomSheet> {
         Expanded(
           child: ElevatedButton(
             onPressed: () {
-              ref.read(activityFilterProvider.notifier).updateFilter(
-                activityType: _selectedActivityType,
-                dateRange: _selectedDateRange,
-              );
+              ref
+                  .read(activityFilterProvider.notifier)
+                  .updateFilter(
+                    activityType: _selectedActivityType,
+                    dateRange: _selectedDateRange,
+                  );
               Navigator.of(context).pop();
               widget.onApplyFilters();
             },
@@ -752,13 +753,10 @@ class _FilterBottomSheetState extends ConsumerState<_FilterBottomSheet> {
             )
           : null,
     );
-    
+
     if (picked != null) {
       setState(() {
-        _selectedDateRange = DateRange(
-          start: picked.start,
-          end: picked.end,
-        );
+        _selectedDateRange = DateRange(start: picked.start, end: picked.end);
       });
     }
   }
@@ -771,10 +769,12 @@ class _FilterBottomSheetState extends ConsumerState<_FilterBottomSheet> {
       AppDateUtils.lastWeek,
       AppDateUtils.thisMonth,
     ];
-    
-    return predefined.any((predefinedRange) =>
-        AppDateUtils.isSameDay(range.start, predefinedRange.start) &&
-        AppDateUtils.isSameDay(range.end, predefinedRange.end));
+
+    return predefined.any(
+      (predefinedRange) =>
+          AppDateUtils.isSameDay(range.start, predefinedRange.start) &&
+          AppDateUtils.isSameDay(range.end, predefinedRange.end),
+    );
   }
 
   String _formatDateRange(DateRange range) {

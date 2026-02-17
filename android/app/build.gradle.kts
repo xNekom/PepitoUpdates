@@ -33,13 +33,13 @@ android {
     buildTypes {
         release {
             // Production build configuration
-            minifyEnabled = true
-            shrinkResources = true
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
         debug {
-            minifyEnabled = false
-            debuggable = true
+            isMinifyEnabled = false
+            isDebuggable = true
         }
     }
 }

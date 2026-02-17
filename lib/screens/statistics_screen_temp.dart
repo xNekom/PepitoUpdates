@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/cat_paw_icon.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/pepito_providers.dart';
 import '../utils/theme_utils.dart';
@@ -100,10 +101,12 @@ class StatisticsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMainStats(BuildContext context, WidgetRef ref, AppColors colors) {
-    final statsAsync = ref.watch(statisticsProvider(
-      const StatisticsParams(),
-    ));
+  Widget _buildMainStats(
+    BuildContext context,
+    WidgetRef ref,
+    AppColors colors,
+  ) {
+    final statsAsync = ref.watch(statisticsProvider(const StatisticsParams()));
 
     return statsAsync.when(
       data: (stats) => _buildStatsGrid(context, stats, colors),
@@ -112,7 +115,11 @@ class StatisticsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatsGrid(BuildContext context, Map<String, dynamic> stats, AppColors colors) {
+  Widget _buildStatsGrid(
+    BuildContext context,
+    Map<String, dynamic> stats,
+    AppColors colors,
+  ) {
     final totalActivities = stats['total_activities'] ?? 0;
     final totalEntries = stats['total_entries'] ?? 0;
     final totalExits = stats['total_exits'] ?? 0;
@@ -173,16 +180,19 @@ class StatisticsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color, AppColors colors) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+    AppColors colors,
+  ) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: color.withValues(alpha: 0.2),
-          width: 1,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
         boxShadow: [
           BoxShadow(
             color: color.withValues(alpha: 0.1),
@@ -202,11 +212,7 @@ class StatisticsScreen extends ConsumerWidget {
                   color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 20,
-                ),
+                child: Icon(icon, color: color, size: 20),
               ),
               const Spacer(),
             ],
@@ -234,10 +240,12 @@ class StatisticsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSimpleCharts(BuildContext context, WidgetRef ref, AppColors colors) {
-    final statsAsync = ref.watch(statisticsProvider(
-      const StatisticsParams(),
-    ));
+  Widget _buildSimpleCharts(
+    BuildContext context,
+    WidgetRef ref,
+    AppColors colors,
+  ) {
+    final statsAsync = ref.watch(statisticsProvider(const StatisticsParams()));
 
     return statsAsync.when(
       data: (stats) {
@@ -299,7 +307,13 @@ class StatisticsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildProgressBar(String label, int value, int total, Color color, AppColors colors) {
+  Widget _buildProgressBar(
+    String label,
+    int value,
+    int total,
+    Color color,
+    AppColors colors,
+  ) {
     final percentage = total > 0 ? (value / total) : 0.0;
 
     return Column(
@@ -348,10 +362,12 @@ class StatisticsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildRecentActivities(BuildContext context, WidgetRef ref, AppColors colors) {
-    final statsAsync = ref.watch(statisticsProvider(
-      const StatisticsParams(),
-    ));
+  Widget _buildRecentActivities(
+    BuildContext context,
+    WidgetRef ref,
+    AppColors colors,
+  ) {
+    final statsAsync = ref.watch(statisticsProvider(const StatisticsParams()));
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -399,8 +415,9 @@ class StatisticsScreen extends ConsumerWidget {
   }
 
   Widget _buildActivityItem(dynamic activity, AppColors colors) {
-    final isEntry = activity.type.toString().contains('entry') ||
-                   activity.type.toString().contains('in');
+    final isEntry =
+        activity.type.toString().contains('entry') ||
+        activity.type.toString().contains('in');
     final color = isEntry ? AppTheme.successColor : AppTheme.warningColor;
     final icon = isEntry ? Icons.login : Icons.logout;
 
@@ -410,10 +427,7 @@ class StatisticsScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withValues(alpha: 0.2),
-          width: 1,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
       ),
       child: Row(
         children: [
@@ -423,11 +437,7 @@ class StatisticsScreen extends ConsumerWidget {
               color: color.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 16,
-            ),
+            child: Icon(icon, color: color, size: 16),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -487,9 +497,7 @@ class StatisticsScreen extends ConsumerWidget {
         color: Colors.grey.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: const Center(
-        child: CircularProgressIndicator(),
-      ),
+      child: const Center(child: CircularProgressIndicator()),
     );
   }
 
@@ -500,25 +508,24 @@ class StatisticsScreen extends ConsumerWidget {
         color: Colors.grey.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: const Center(
-        child: CircularProgressIndicator(),
-      ),
+      child: const Center(child: CircularProgressIndicator()),
     );
   }
 
   Widget _buildLoadingActivities() {
     return Column(
-      children: List.generate(3, (index) => Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        height: 60,
-        decoration: BoxDecoration(
-          color: Colors.grey.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
+      children: List.generate(
+        3,
+        (index) => Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          height: 60,
+          decoration: BoxDecoration(
+            color: Colors.grey.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Center(child: CircularProgressIndicator()),
         ),
-        child: const Center(
-          child: CircularProgressIndicator(),
-        ),
-      )),
+      ),
     );
   }
 
@@ -535,11 +542,7 @@ class StatisticsScreen extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          Icon(
-            Icons.error_outline,
-            color: AppTheme.errorColor,
-            size: 48,
-          ),
+          Icon(Icons.error_outline, color: AppTheme.errorColor, size: 48),
           const SizedBox(height: 16),
           Text(
             'Error al cargar estadísticas',
@@ -579,11 +582,7 @@ class StatisticsScreen extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.bar_chart,
-              color: AppTheme.errorColor,
-              size: 48,
-            ),
+            Icon(Icons.bar_chart, color: AppTheme.errorColor, size: 48),
             const SizedBox(height: 16),
             Text(
               'Error en gráficos',
@@ -608,19 +607,12 @@ class StatisticsScreen extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.error_outline,
-            color: AppTheme.errorColor,
-            size: 24,
-          ),
+          Icon(Icons.error_outline, color: AppTheme.errorColor, size: 24),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               'Error al cargar actividades: $error',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppTheme.errorColor,
-              ),
+              style: TextStyle(fontSize: 14, color: AppTheme.errorColor),
             ),
           ),
         ],
@@ -679,8 +671,7 @@ class StatisticsScreen extends ConsumerWidget {
       child: Center(
         child: Column(
           children: [
-            Icon(
-              Icons.pets,
+            CatPawIcon(
               color: colors.onSurface.withValues(alpha: 0.5),
               size: 48,
             ),

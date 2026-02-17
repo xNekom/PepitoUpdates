@@ -18,7 +18,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
     with AutomaticKeepAliveClientMixin, TickerProviderStateMixin {
   late TabController _tabController;
   DateRange _selectedPeriod = AppDateUtils.thisWeek;
-  
+
   final List<DateRange> _predefinedPeriods = [
     AppDateUtils.today,
     AppDateUtils.thisWeek,
@@ -28,7 +28,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
       end: DateTime.now(),
     ),
   ];
-  
+
   List<String> get _periodLabels => [
     AppLocalizations.of(context)!.today,
     AppLocalizations.of(context)!.thisWeek,
@@ -56,7 +56,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
     super.build(context);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Scaffold(
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) => [
@@ -80,9 +80,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
     return SliverAppBar(
       title: Text(
         AppLocalizations.of(context)!.statistics,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-        ),
+        style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       backgroundColor: AppTheme.primaryColor,
       foregroundColor: Colors.white,
@@ -114,7 +112,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
             final period = _predefinedPeriods[index];
             final label = _periodLabels[index];
             final isSelected = _isPeriodSelected(period);
-            
+
             return Padding(
               padding: const EdgeInsets.only(right: 8),
               child: FilterChip(
@@ -166,7 +164,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
             ),
           ),
         );
-        
+
         return statisticsAsync.when(
           data: (statistics) => _buildOverviewContent(statistics),
           loading: () => _buildLoadingState(),
@@ -182,9 +180,11 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
     final exitCount = activities.where((a) => !a.isEntry).length;
     final totalActivities = activities.length;
     final daysInPeriod = _getDaysInPeriod();
-    final averageDaily = daysInPeriod > 0 ? totalActivities / daysInPeriod : 0.0;
+    final averageDaily = daysInPeriod > 0
+        ? totalActivities / daysInPeriod
+        : 0.0;
     final note = statistics['note'] as String?;
-    
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -205,11 +205,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
               ),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.info_outline,
-                    color: AppTheme.infoColor,
-                    size: 24,
-                  ),
+                  Icon(Icons.info_outline, color: AppTheme.infoColor, size: 24),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -259,20 +255,24 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                 title: AppLocalizations.of(context)!.totalActivities,
                 value: totalActivities.toString(),
                 subtitle: AppLocalizations.of(context)!.inSelectedPeriod,
-                icon: Icons.pets,
+                icon: Icons.timeline,
                 color: AppTheme.primaryColor,
               ),
               StatisticsCard(
                 title: AppLocalizations.of(context)!.entries,
                 value: entryCount.toString(),
-                subtitle: totalActivities > 0 ? '${((entryCount / totalActivities) * 100).toStringAsFixed(1)}${AppLocalizations.of(context)!.percentOfTotal}' : '0${AppLocalizations.of(context)!.percentOfTotal}',
+                subtitle: totalActivities > 0
+                    ? '${((entryCount / totalActivities) * 100).toStringAsFixed(1)}${AppLocalizations.of(context)!.percentOfTotal}'
+                    : '0${AppLocalizations.of(context)!.percentOfTotal}',
                 icon: Icons.home,
                 color: AppTheme.successColor,
               ),
               StatisticsCard(
                 title: AppLocalizations.of(context)!.exits,
                 value: exitCount.toString(),
-                subtitle: totalActivities > 0 ? '${((exitCount / totalActivities) * 100).toStringAsFixed(1)}${AppLocalizations.of(context)!.percentOfTotal}' : '0${AppLocalizations.of(context)!.percentOfTotal}',
+                subtitle: totalActivities > 0
+                    ? '${((exitCount / totalActivities) * 100).toStringAsFixed(1)}${AppLocalizations.of(context)!.percentOfTotal}'
+                    : '0${AppLocalizations.of(context)!.percentOfTotal}',
                 icon: Icons.logout,
                 color: AppTheme.warningColor,
               ),
@@ -310,7 +310,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
             ),
           ),
         );
-        
+
         return statisticsAsync.when(
           data: (statistics) => _buildChartsContent(statistics),
           loading: () => _buildLoadingState(),
@@ -322,7 +322,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
   Widget _buildChartsContent(Map<String, dynamic> statistics) {
     final activities = statistics['activities'] as List<PepitoActivity>? ?? [];
-    
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -338,7 +338,11 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
           _buildHourlyDistributionChart(activities),
           const SizedBox(height: 16),
           // Weekly pattern
-          if (_selectedPeriod.start.difference(_selectedPeriod.end).inDays.abs() >= 7)
+          if (_selectedPeriod.start
+                  .difference(_selectedPeriod.end)
+                  .inDays
+                  .abs() >=
+              7)
             _buildWeeklyPatternChart(activities),
         ],
       ),
@@ -356,7 +360,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
             ),
           ),
         );
-        
+
         return statisticsAsync.when(
           data: (statistics) => _buildInsightsContent(statistics),
           loading: () => _buildLoadingState(),
@@ -368,7 +372,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
   Widget _buildInsightsContent(Map<String, dynamic> statistics) {
     final activities = statistics['activities'] as List<PepitoActivity>? ?? [];
-    
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -387,11 +391,11 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
     if (activities.isEmpty) {
       return const SizedBox.shrink();
     }
-    
+
     final mostActiveHour = _getMostActiveHour(activities);
     final leastActiveHour = _getLeastActiveHour(activities);
     final averageConfidence = _getAverageConfidence(activities);
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -400,9 +404,9 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
           children: [
             Text(
               AppLocalizations.of(context)!.timeAnalysis,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
             _buildInsightRow(
@@ -433,7 +437,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
   Widget _buildHourlyDistributionChart(List<PepitoActivity> activities) {
     final hourlyData = _getHourlyDistribution(activities);
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -442,9 +446,9 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
           children: [
             Text(
               AppLocalizations.of(context)!.hourlyDistribution,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
             SizedBox(
@@ -453,11 +457,11 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: List.generate(24, (hour) {
                   final count = hourlyData[hour] ?? 0;
-                  final maxCount = hourlyData.values.isEmpty 
-                      ? 1 
+                  final maxCount = hourlyData.values.isEmpty
+                      ? 1
                       : hourlyData.values.reduce((a, b) => a > b ? a : b);
                   final height = maxCount > 0 ? (count / maxCount) * 160 : 0.0;
-                  
+
                   return Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 1),
@@ -467,7 +471,9 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                           Container(
                             height: height,
                             decoration: BoxDecoration(
-                              color: AppTheme.primaryColor.withValues(alpha: 0.8),
+                              color: AppTheme.primaryColor.withValues(
+                                alpha: 0.8,
+                              ),
                               borderRadius: const BorderRadius.vertical(
                                 top: Radius.circular(2),
                               ),
@@ -479,7 +485,9 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                               '${hour}h',
                               style: TextStyle(
                                 fontSize: 10,
-                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.7),
                               ),
                             ),
                         ],
@@ -504,9 +512,9 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
       AppLocalizations.of(context)!.thursday,
       AppLocalizations.of(context)!.friday,
       AppLocalizations.of(context)!.saturday,
-      AppLocalizations.of(context)!.sunday
+      AppLocalizations.of(context)!.sunday,
     ];
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -515,9 +523,9 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
           children: [
             Text(
               AppLocalizations.of(context)!.weeklyPattern,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
             SizedBox(
@@ -526,11 +534,11 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: List.generate(7, (dayIndex) {
                   final count = weeklyData[dayIndex + 1] ?? 0;
-                  final maxCount = weeklyData.values.isEmpty 
-                      ? 1 
+                  final maxCount = weeklyData.values.isEmpty
+                      ? 1
                       : weeklyData.values.reduce((a, b) => a > b ? a : b);
                   final height = maxCount > 0 ? (count / maxCount) * 160 : 0.0;
-                  
+
                   return Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -540,7 +548,9 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                           Container(
                             height: height,
                             decoration: BoxDecoration(
-                              color: AppTheme.primaryColor.withValues(alpha: 0.8),
+                              color: AppTheme.primaryColor.withValues(
+                                alpha: 0.8,
+                              ),
                               borderRadius: const BorderRadius.vertical(
                                 top: Radius.circular(4),
                               ),
@@ -551,7 +561,9 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                             weekdays[dayIndex],
                             style: TextStyle(
                               fontSize: 12,
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withValues(alpha: 0.7),
                             ),
                           ),
                         ],
@@ -569,7 +581,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
   Widget _buildBehaviorInsights(List<PepitoActivity> activities) {
     final insights = _generateBehaviorInsights(activities);
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -578,9 +590,9 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
           children: [
             Text(
               AppLocalizations.of(context)!.behaviorInsights,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
             ...insights.map((insight) => _buildInsightItem(insight)),
@@ -592,7 +604,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
   Widget _buildPatternInsights(List<PepitoActivity> activities) {
     final patterns = _generatePatternInsights(activities);
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -601,9 +613,9 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
           children: [
             Text(
               AppLocalizations.of(context)!.detectedPatterns,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
             ...patterns.map((pattern) => _buildInsightItem(pattern)),
@@ -615,7 +627,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
   Widget _buildRecommendations(List<PepitoActivity> activities) {
     final recommendations = _generateRecommendations(activities);
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -624,12 +636,14 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
           children: [
             Text(
               AppLocalizations.of(context)!.recommendations,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
-            ...recommendations.map((recommendation) => _buildRecommendationItem(recommendation)),
+            ...recommendations.map(
+              (recommendation) => _buildRecommendationItem(recommendation),
+            ),
           ],
         ),
       ),
@@ -644,18 +658,16 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
   }) {
     return Row(
       children: [
-        Icon(
-          icon,
-          color: color,
-          size: 20,
-        ),
+        Icon(icon, color: color, size: 20),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
             title,
             style: TextStyle(
               fontSize: 14,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.8),
             ),
           ),
         ),
@@ -677,18 +689,16 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.lightbulb_outline,
-            size: 16,
-            color: AppTheme.warningColor,
-          ),
+          Icon(Icons.lightbulb_outline, size: 16, color: AppTheme.warningColor),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               insight,
               style: TextStyle(
                 fontSize: 14,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.8),
               ),
             ),
           ),
@@ -703,18 +713,16 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.recommend,
-            size: 16,
-            color: AppTheme.successColor,
-          ),
+          Icon(Icons.recommend, size: 16, color: AppTheme.successColor),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               recommendation,
               style: TextStyle(
                 fontSize: 14,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.8),
               ),
             ),
           ),
@@ -739,11 +747,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: AppTheme.errorColor,
-            ),
+            Icon(Icons.error_outline, size: 64, color: AppTheme.errorColor),
             const SizedBox(height: 16),
             Text(
               AppLocalizations.of(context)!.errorLoadingStatistics,
@@ -758,7 +762,9 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
               error,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
             const SizedBox(height: 16),
@@ -775,7 +781,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
   // Helper methods
   bool _isPeriodSelected(DateRange period) {
     return AppDateUtils.isSameDay(_selectedPeriod.start, period.start) &&
-           AppDateUtils.isSameDay(_selectedPeriod.end, period.end);
+        AppDateUtils.isSameDay(_selectedPeriod.end, period.end);
   }
 
   String _getPeriodLabel() {
@@ -787,8 +793,11 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
   }
 
   int _getDaysInPeriod() {
-    final days = _selectedPeriod.end.difference(_selectedPeriod.start).inDays + 1;
-    return days > 0 ? days : 1; // Ensure at least 1 day to avoid division by zero
+    final days =
+        _selectedPeriod.end.difference(_selectedPeriod.start).inDays + 1;
+    return days > 0
+        ? days
+        : 1; // Ensure at least 1 day to avoid division by zero
   }
 
   int _getMostActiveHour(List<PepitoActivity> activities) {
@@ -804,11 +813,14 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
   }
 
   double _getAverageConfidence(List<PepitoActivity> activities) {
-    final activitiesWithConfidence = activities.where((a) => a.confidence != null);
+    final activitiesWithConfidence = activities.where(
+      (a) => a.confidence != null,
+    );
     if (activitiesWithConfidence.isEmpty) return 0.0;
     return activitiesWithConfidence
-        .map((a) => a.confidence!)
-        .reduce((a, b) => a + b) / activitiesWithConfidence.length;
+            .map((a) => a.confidence!)
+            .reduce((a, b) => a + b) /
+        activitiesWithConfidence.length;
   }
 
   Map<int, int> _getHourlyDistribution(List<PepitoActivity> activities) {
@@ -831,44 +843,44 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
   List<String> _generateBehaviorInsights(List<PepitoActivity> activities) {
     final insights = <String>[];
-    
+
     if (activities.isEmpty) {
       insights.add(AppLocalizations.of(context)!.notEnoughDataInsights);
       return insights;
     }
-    
+
     final entryCount = activities.where((a) => a.isEntry).length;
     final exitCount = activities.where((a) => !a.isEntry).length;
-    
+
     if (entryCount > exitCount) {
       insights.add(AppLocalizations.of(context)!.spendsMoreTimeInside);
     } else if (exitCount > entryCount) {
       insights.add(AppLocalizations.of(context)!.adventurousOutside);
     }
-    
+
     final mostActiveHour = _getMostActiveHour(activities);
     if (mostActiveHour >= 6 && mostActiveHour <= 10) {
       insights.add(AppLocalizations.of(context)!.moreActiveMornings);
     } else if (mostActiveHour >= 18 && mostActiveHour <= 22) {
       insights.add(AppLocalizations.of(context)!.prefersEveningActivities);
     }
-    
+
     return insights;
   }
 
   List<String> _generatePatternInsights(List<PepitoActivity> activities) {
     final patterns = <String>[];
-    
+
     if (activities.isEmpty) {
       patterns.add(AppLocalizations.of(context)!.notEnoughDataPatterns);
       return patterns;
     }
-    
+
     final weeklyData = _getWeeklyDistribution(activities);
-    final maxWeekday = weeklyData.entries.isEmpty 
-        ? 1 
+    final maxWeekday = weeklyData.entries.isEmpty
+        ? 1
         : weeklyData.entries.reduce((a, b) => a.value > b.value ? a : b).key;
-    
+
     final weekdays = [
       '',
       AppLocalizations.of(context)!.monday.toLowerCase(),
@@ -877,43 +889,51 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
       AppLocalizations.of(context)!.thursday.toLowerCase(),
       AppLocalizations.of(context)!.friday.toLowerCase(),
       AppLocalizations.of(context)!.saturday.toLowerCase(),
-      AppLocalizations.of(context)!.sunday.toLowerCase()
+      AppLocalizations.of(context)!.sunday.toLowerCase(),
     ];
-    patterns.add(AppLocalizations.of(context)!.mostActiveDays(weekdays[maxWeekday]));
-    
+    patterns.add(
+      AppLocalizations.of(context)!.mostActiveDays(weekdays[maxWeekday]),
+    );
+
     final daysInPeriod = _getDaysInPeriod();
-    final averageDaily = daysInPeriod > 0 ? activities.length / daysInPeriod : 0.0;
+    final averageDaily = daysInPeriod > 0
+        ? activities.length / daysInPeriod
+        : 0.0;
     if (averageDaily > 5) {
       patterns.add(AppLocalizations.of(context)!.regularActivityPattern);
     } else if (averageDaily < 2) {
       patterns.add(AppLocalizations.of(context)!.lowActivityPeriods);
     }
-    
+
     return patterns;
   }
 
   List<String> _generateRecommendations(List<PepitoActivity> activities) {
     final recommendations = <String>[];
-    
+
     if (activities.isEmpty) {
       recommendations.add(AppLocalizations.of(context)!.configureNotifications);
       return recommendations;
     }
-    
+
     final averageConfidence = _getAverageConfidence(activities);
     if (averageConfidence < 0.7) {
-      recommendations.add(AppLocalizations.of(context)!.adjustSensorConfiguration);
+      recommendations.add(
+        AppLocalizations.of(context)!.adjustSensorConfiguration,
+      );
     }
-    
+
     final entryCount = activities.where((a) => a.isEntry).length;
     final exitCount = activities.where((a) => !a.isEntry).length;
-    
+
     if (exitCount > entryCount * 1.5) {
       recommendations.add(AppLocalizations.of(context)!.checkOutdoorSafety);
     }
-    
-    recommendations.add(AppLocalizations.of(context)!.reviewStatisticsRegularly);
-    
+
+    recommendations.add(
+      AppLocalizations.of(context)!.reviewStatisticsRegularly,
+    );
+
     return recommendations;
   }
 
@@ -927,13 +947,10 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
         end: _selectedPeriod.end,
       ),
     );
-    
+
     if (picked != null) {
       setState(() {
-        _selectedPeriod = DateRange(
-          start: picked.start,
-          end: picked.end,
-        );
+        _selectedPeriod = DateRange(start: picked.start, end: picked.end);
       });
       _refreshData();
     }
@@ -955,7 +972,11 @@ class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => _tabBar.preferredSize.height;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return Container(
       color: Theme.of(context).colorScheme.surface,
       child: _tabBar,
