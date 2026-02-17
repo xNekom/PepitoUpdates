@@ -35,7 +35,6 @@ dependencies:
 
   # UI and Platform-specific
   cupertino_icons: ^1.0.8
-  material_color_utilities: ^0.11.1
   fluent_ui: ^4.13.0
   flutter_svg: ^2.0.10+1
   
