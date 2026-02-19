@@ -1,5 +1,18 @@
-# Ignore everything except build/web
-*
-!build
-!build/web
-!build/web/**
+lib
+test
+supabase
+.git
+.github
+android
+ios
+windows
+linux
+macos
+assets
+*.yaml
+*.md
+*.bat
+*.sh
+.gitignore
+.env*
+pubspec.lock
