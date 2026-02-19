@@ -1,5 +1,5 @@
 {
-  "buildCommand": "exit 0",
+  "buildCommand": "",
   "outputDirectory": "build/web",
   "framework": null,
   "headers": [

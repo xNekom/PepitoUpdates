@@ -26,9 +26,12 @@ jobs:
       - name: Build Flutter Web
         run: flutter build web --release --dart-define=FLUTTER_WEB_CANVASKIT_URL=https://www.gstatic.com/flutter-canvaskit/
 
-      - name: Deploy to Vercel
+      - name: Link & Deploy to Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           npm install -g vercel
-          vercel --prod --token $VERCEL_TOKEN
+          vercel link --yes --token $VERCEL_TOKEN
+          vercel deploy build/web --prod --token $VERCEL_TOKEN --confirm
