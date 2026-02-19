@@ -1,0 +1,77 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gato comiendo con proporciones realistas -->
+  
+  <!-- Cola relajada -->
+  <path d="M25 60 Q15 70 18 82 Q22 92 32 85" stroke="#6C5CE7" stroke-width="5" fill="none" stroke-linecap="round"/>
+  
+  <!-- Cuerpo esbelto -->
+  <ellipse cx="52" cy="55" rx="24" ry="13" fill="#6C5CE7" opacity="0.9"/>
+  
+  <!-- Pecho -->
+  <ellipse cx="68" cy="52" rx="10" ry="10" fill="#6C5CE7"/>
+  
+  <!-- Cuello inclinado hacia abajo -->
+  <ellipse cx="74" cy="48" rx="6" ry="7" fill="#6C5CE7"/>
+  
+  <!-- Cabeza inclinada hacia el plato -->
+  <ellipse cx="78" cy="58" rx="13" ry="12" fill="#6C5CE7" transform="rotate(25 78 58)"/>
+  
+  <!-- Orejas puntiagudas -->
+  <path d="M68 46 L63 32 L74 42 Z" fill="#6C5CE7"/>
+  <path d="M86 42 L92 30 L82 40 Z" fill="#6C5CE7"/>
+  <!-- Interior de las orejas -->
+  <path d="M69 44 L67 36 L73 43 Z" fill="#A29BFE"/>
+  <path d="M85 41 L88 34 L82 41 Z" fill="#A29BFE"/>
+  
+  <!-- Ojos entrecerrados (concentrado comiendo) -->
+  <ellipse cx="73" cy="54" rx="2.5" ry="1.5" fill="#2C3E50"/>
+  <ellipse cx="83" cy="56" rx="2.5" ry="1.5" fill="#2C3E50"/>
+  <circle cx="73.8" cy="53.5" r="0.7" fill="white"/>
+  <circle cx="83.8" cy="55.5" r="0.7" fill="white"/>
+  
+  <!-- Nariz -->
+  <path d="M77 60 L78 62 L79 60 Z" fill="#E74C3C"/>
+  
+  <!-- Boca comiendo -->
+  <ellipse cx="78" cy="65" rx="3" ry="1.5" fill="#2C3E50" opacity="0.8"/>
+  
+  <!-- Patas delanteras -->
+  <rect x="62" y="62" width="4" height="18" rx="2" fill="#6C5CE7"/>
+  <rect x="72" y="64" width="4" height="16" rx="2" fill="#6C5CE7"/>
+  
+  <!-- Patas traseras -->
+  <rect x="34" y="62" width="4" height="18" rx="2" fill="#6C5CE7"/>
+  <rect x="44" y="62" width="4" height="18" rx="2" fill="#6C5CE7"/>
+  
+  <!-- Patitas -->
+  <ellipse cx="64" cy="81" rx="3.5" ry="2" fill="#A29BFE"/>
+  <ellipse cx="74" cy="81" rx="3.5" ry="2" fill="#A29BFE"/>
+  <ellipse cx="36" cy="81" rx="3.5" ry="2" fill="#A29BFE"/>
+  <ellipse cx="46" cy="81" rx="3.5" ry="2" fill="#A29BFE"/>
+  
+  <!-- Bigotes -->
+  <line x1="66" y1="57" x2="56" y2="55" stroke="#2C3E50" stroke-width="1" stroke-linecap="round"/>
+  <line x1="66" y1="60" x2="56" y2="60" stroke="#2C3E50" stroke-width="1" stroke-linecap="round"/>
+  <line x1="90" y1="59" x2="100" y2="57" stroke="#2C3E50" stroke-width="1" stroke-linecap="round"/>
+  <line x1="90" y1="62" x2="100" y2="62" stroke="#2C3E50" stroke-width="1" stroke-linecap="round"/>
+  
+  <!-- Plato de comida -->
+  <ellipse cx="78" cy="90" rx="20" ry="6" fill="#E17055"/>
+  <ellipse cx="78" cy="88" rx="18" ry="4.5" fill="#FDCB6E"/>
+  
+  <!-- Comida en el plato (croquetas) -->
+  <circle cx="73" cy="87" r="2.5" fill="#D63031"/>
+  <circle cx="83" cy="87" r="2.5" fill="#D63031"/>
+  <circle cx="78" cy="89" r="2" fill="#D63031"/>
+  <circle cx="70" cy="89" r="1.8" fill="#D63031"/>
+  <circle cx="86" cy="89" r="1.8" fill="#D63031"/>
+  
+  <!-- Rayas sutiles en el cuerpo -->
+  <path d="M42 50 Q48 46 54 50" stroke="#5B4BC7" stroke-width="1.2" fill="none" opacity="0.3"/>
+  <path d="M38 54 Q44 50 50 54" stroke="#5B4BC7" stroke-width="1.2" fill="none" opacity="0.25"/>
+  
+  <!-- Líneas de aroma -->
+  <path d="M70 82 Q68 77 70 72" stroke="#6B7280" stroke-width="1" fill="none" opacity="0.35"/>
+  <path d="M78 82 Q76 77 78 72" stroke="#6B7280" stroke-width="1" fill="none" opacity="0.35"/>
+  <path d="M86 82 Q88 77 86 72" stroke="#6B7280" stroke-width="1" fill="none" opacity="0.35"/>
+</svg>

@@ -1,0 +1,62 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fondo circular -->
+  <circle cx="256" cy="256" r="240" fill="#FF6B35" stroke="#E55A2B" stroke-width="8"/>
+  
+  <!-- Cabeza del gato -->
+  <ellipse cx="256" cy="220" rx="120" ry="100" fill="#FFA500"/>
+  
+  <!-- Orejas -->
+  <path d="M180 150 L200 120 L220 150 Z" fill="#FFA500" stroke="#FF8C00" stroke-width="2"/>
+  <path d="M292 150 L312 120 L332 150 Z" fill="#FFA500" stroke="#FF8C00" stroke-width="2"/>
+  
+  <!-- Interior de las orejas -->
+  <path d="M185 145 L195 130 L205 145 Z" fill="#FFB84D"/>
+  <path d="M307 145 L317 130 L327 145 Z" fill="#FFB84D"/>
+  
+  <!-- Ojos -->
+  <ellipse cx="220" cy="200" rx="20" ry="25" fill="#4CAF50"/>
+  <ellipse cx="292" cy="200" rx="20" ry="25" fill="#4CAF50"/>
+  
+  <!-- Pupilas -->
+  <ellipse cx="220" cy="205" rx="8" ry="12" fill="#000"/>
+  <ellipse cx="292" cy="205" rx="8" ry="12" fill="#000"/>
+  
+  <!-- Brillo en los ojos -->
+  <ellipse cx="224" cy="200" rx="3" ry="4" fill="#FFF"/>
+  <ellipse cx="296" cy="200" rx="3" ry="4" fill="#FFF"/>
+  
+  <!-- Nariz -->
+  <path d="M256 230 L248 240 L264 240 Z" fill="#FF69B4"/>
+  
+  <!-- Boca -->
+  <path d="M256 245 Q240 255 230 250" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M256 245 Q272 255 282 250" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+  
+  <!-- Bigotes -->
+  <line x1="180" y1="235" x2="140" y2="230" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+  <line x1="180" y1="250" x2="140" y2="250" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+  <line x1="332" y1="235" x2="372" y2="230" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+  <line x1="332" y1="250" x2="372" y2="250" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Cuerpo -->
+  <ellipse cx="256" cy="350" rx="80" ry="60" fill="#FFA500"/>
+  
+  <!-- Patas -->
+  <ellipse cx="220" cy="400" rx="15" ry="25" fill="#FFA500"/>
+  <ellipse cx="292" cy="400" rx="15" ry="25" fill="#FFA500"/>
+  
+  <!-- Cola -->
+  <path d="M336 340 Q380 320 390 280 Q385 260 360 270 Q340 285 330 320" fill="#FFA500" stroke="#FF8C00" stroke-width="2"/>
+  
+  <!-- Rayas en la cola -->
+  <path d="M345 315 Q365 305 370 290" stroke="#FF8C00" stroke-width="2" fill="none"/>
+  <path d="M350 300 Q370 290 375 275" stroke="#FF8C00" stroke-width="2" fill="none"/>
+  
+  <!-- Collar con sensor IoT -->
+  <rect x="230" y="280" width="52" height="12" rx="6" fill="#2196F3"/>
+  <circle cx="256" cy="286" r="8" fill="#4CAF50"/>
+  <circle cx="256" cy="286" r="4" fill="#8BC34A"/>
+  
+  <!-- Texto "Pépito" -->
+  <text x="256" y="480" font-family="Arial, sans-serif" font-size="32" font-weight="bold" text-anchor="middle" fill="#FFF">Pépito</text>
+</svg>

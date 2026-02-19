@@ -1,0 +1,74 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gato activo con proporciones más realistas y elegantes -->
+  
+  <!-- Cola elegante y curvada -->
+  <path d="M28 58 Q18 42 22 26 Q25 16 30 20 Q34 24 32 35 Q30 46 33 55" stroke="#00B894" stroke-width="5" fill="none" stroke-linecap="round"/>
+  
+  <!-- Cuerpo esbelto y alargado -->
+  <ellipse cx="58" cy="62" rx="26" ry="14" fill="#00B894"/>
+  
+  <!-- Pecho -->
+  <ellipse cx="72" cy="58" rx="12" ry="11" fill="#00B894"/>
+  
+  <!-- Cuello -->
+  <ellipse cx="78" cy="48" rx="7" ry="8" fill="#00B894"/>
+  
+  <!-- Cabeza más proporcionada (no tan redonda) -->
+  <ellipse cx="80" cy="34" rx="14" ry="13" fill="#00B894"/>
+  
+  <!-- Orejas puntiagudas y alertas -->
+  <path d="M70 24 L66 8 L76 18 Z" fill="#00B894"/>
+  <path d="M90 24 L94 8 L84 18 Z" fill="#00B894"/>
+  <!-- Interior de las orejas -->
+  <path d="M71 22 L69 12 L74 19 Z" fill="#1ABC9C"/>
+  <path d="M89 22 L91 12 L86 19 Z" fill="#1ABC9C"/>
+  
+  <!-- Ojos almendrados (forma de gato) -->
+  <ellipse cx="74" cy="32" rx="3.5" ry="3" fill="#2C3E50"/>
+  <ellipse cx="86" cy="32" rx="3.5" ry="3" fill="#2C3E50"/>
+  <!-- Pupilas verticales de gato -->
+  <ellipse cx="74" cy="32" rx="1.2" ry="2.5" fill="#1a1a2e"/>
+  <ellipse cx="86" cy="32" rx="1.2" ry="2.5" fill="#1a1a2e"/>
+  <!-- Brillo en los ojos -->
+  <circle cx="75.2" cy="31" r="1" fill="white"/>
+  <circle cx="87.2" cy="31" r="1" fill="white"/>
+  
+  <!-- Nariz pequeña -->
+  <path d="M79 37 L80 39 L81 37 Z" fill="#E74C3C"/>
+  
+  <!-- Boca -->
+  <path d="M80 39 Q77 42 75 41" stroke="#2C3E50" stroke-width="1" fill="none" stroke-linecap="round"/>
+  <path d="M80 39 Q83 42 85 41" stroke="#2C3E50" stroke-width="1" fill="none" stroke-linecap="round"/>
+  
+  <!-- Bigotes elegantes y largos -->
+  <line x1="68" y1="35" x2="54" y2="32" stroke="#2C3E50" stroke-width="1" stroke-linecap="round"/>
+  <line x1="68" y1="38" x2="54" y2="38" stroke="#2C3E50" stroke-width="1" stroke-linecap="round"/>
+  <line x1="68" y1="41" x2="54" y2="44" stroke="#2C3E50" stroke-width="1" stroke-linecap="round"/>
+  <line x1="92" y1="35" x2="106" y2="32" stroke="#2C3E50" stroke-width="1" stroke-linecap="round"/>
+  <line x1="92" y1="38" x2="106" y2="38" stroke="#2C3E50" stroke-width="1" stroke-linecap="round"/>
+  <line x1="92" y1="41" x2="106" y2="44" stroke="#2C3E50" stroke-width="1" stroke-linecap="round"/>
+  
+  <!-- Patas delanteras (esbeltas) -->
+  <rect x="68" y="68" width="5" height="22" rx="2.5" fill="#00B894"/>
+  <rect x="78" y="68" width="5" height="22" rx="2.5" fill="#00B894"/>
+  
+  <!-- Patas traseras (esbeltas, ligeramente anguladas) -->
+  <rect x="38" y="68" width="5" height="22" rx="2.5" fill="#00B894"/>
+  <rect x="48" y="68" width="5" height="22" rx="2.5" fill="#00B894"/>
+  
+  <!-- Patitas/pies -->
+  <ellipse cx="70.5" cy="91" rx="4" ry="2.5" fill="#1ABC9C"/>
+  <ellipse cx="80.5" cy="91" rx="4" ry="2.5" fill="#1ABC9C"/>
+  <ellipse cx="40.5" cy="91" rx="4" ry="2.5" fill="#1ABC9C"/>
+  <ellipse cx="50.5" cy="91" rx="4" ry="2.5" fill="#1ABC9C"/>
+  
+  <!-- Rayas de tabby sutiles en el cuerpo -->
+  <path d="M50 56 Q55 52 60 56" stroke="#0fa17d" stroke-width="1.5" fill="none" opacity="0.4"/>
+  <path d="M55 59 Q60 55 65 59" stroke="#0fa17d" stroke-width="1.5" fill="none" opacity="0.3"/>
+  <path d="M45 62 Q50 58 55 62" stroke="#0fa17d" stroke-width="1.5" fill="none" opacity="0.35"/>
+  
+  <!-- Líneas de movimiento para indicar actividad -->
+  <path d="M100 28 L106 25" stroke="#6B7280" stroke-width="1.5" fill="none" opacity="0.4" stroke-linecap="round"/>
+  <path d="M102 33 L108 32" stroke="#6B7280" stroke-width="1.5" fill="none" opacity="0.3" stroke-linecap="round"/>
+  <path d="M100 38 L106 40" stroke="#6B7280" stroke-width="1.5" fill="none" opacity="0.35" stroke-linecap="round"/>
+</svg>

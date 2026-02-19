@@ -1,0 +1,82 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gato jugando con proporciones realistas -->
+  
+  <!-- Cola en movimiento (arqueada con energía) -->
+  <path d="M22 55 Q12 40 18 25 Q22 15 28 22 Q32 30 28 42 Q26 50 28 55" stroke="#E84393" stroke-width="5" fill="none" stroke-linecap="round"/>
+  
+  <!-- Cuerpo esbelto (ligeramente arqueado en posición de juego) -->
+  <ellipse cx="50" cy="56" rx="24" ry="12" fill="#E84393" opacity="0.9" transform="rotate(-8 50 56)"/>
+  
+  <!-- Pecho -->
+  <ellipse cx="66" cy="50" rx="10" ry="10" fill="#E84393"/>
+  
+  <!-- Cuello -->
+  <ellipse cx="72" cy="42" rx="6" ry="7" fill="#E84393"/>
+  
+  <!-- Cabeza alerta y juguetona -->
+  <ellipse cx="74" cy="30" rx="13" ry="12" fill="#E84393"/>
+  
+  <!-- Orejas puntiagudas y alertas -->
+  <path d="M64 20 L59 5 L70 16 Z" fill="#E84393"/>
+  <path d="M84 20 L89 5 L78 16 Z" fill="#E84393"/>
+  <!-- Interior de las orejas -->
+  <path d="M65 19 L63 10 L69 17 Z" fill="#FD79A8"/>
+  <path d="M83 19 L85 10 L79 17 Z" fill="#FD79A8"/>
+  
+  <!-- Ojos grandes y juguetones (pupilas dilatadas) -->
+  <ellipse cx="69" cy="28" rx="3.5" ry="3.2" fill="#2C3E50"/>
+  <ellipse cx="80" cy="28" rx="3.5" ry="3.2" fill="#2C3E50"/>
+  <!-- Pupilas dilatadas (modo juego) -->
+  <ellipse cx="69" cy="28" rx="2.5" ry="2.8" fill="#1a1a2e"/>
+  <ellipse cx="80" cy="28" rx="2.5" ry="2.8" fill="#1a1a2e"/>
+  <!-- Brillo en los ojos -->
+  <circle cx="70.5" cy="27" r="1.2" fill="white"/>
+  <circle cx="81.5" cy="27" r="1.2" fill="white"/>
+  
+  <!-- Nariz -->
+  <path d="M73 33 L74 35 L75 33 Z" fill="#E74C3C"/>
+  
+  <!-- Boca sonriente -->
+  <path d="M74 35 Q72 38 70 37" stroke="#2C3E50" stroke-width="1" fill="none" stroke-linecap="round"/>
+  <path d="M74 35 Q76 38 78 37" stroke="#2C3E50" stroke-width="1" fill="none" stroke-linecap="round"/>
+  
+  <!-- Pata delantera izquierda (extendida hacia el juguete) -->
+  <path d="M70 56 L82 72 L86 70" stroke="#E84393" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <ellipse cx="86" cy="71" rx="4" ry="2.5" fill="#FD79A8" transform="rotate(-15 86 71)"/>
+  
+  <!-- Pata delantera derecha -->
+  <rect x="62" y="56" width="4" height="20" rx="2" fill="#E84393"/>
+  <ellipse cx="64" cy="77" rx="3.5" ry="2" fill="#FD79A8"/>
+  
+  <!-- Patas traseras -->
+  <rect x="32" y="56" width="4.5" height="20" rx="2" fill="#E84393"/>
+  <rect x="42" y="56" width="4.5" height="20" rx="2" fill="#E84393"/>
+  <ellipse cx="34.25" cy="77" rx="3.5" ry="2" fill="#FD79A8"/>
+  <ellipse cx="44.25" cy="77" rx="3.5" ry="2" fill="#FD79A8"/>
+  
+  <!-- Bigotes -->
+  <line x1="62" y1="31" x2="50" y2="28" stroke="#2C3E50" stroke-width="1" stroke-linecap="round"/>
+  <line x1="62" y1="34" x2="50" y2="34" stroke="#2C3E50" stroke-width="1" stroke-linecap="round"/>
+  <line x1="62" y1="37" x2="50" y2="40" stroke="#2C3E50" stroke-width="1" stroke-linecap="round"/>
+  <line x1="86" y1="31" x2="98" y2="28" stroke="#2C3E50" stroke-width="1" stroke-linecap="round"/>
+  <line x1="86" y1="34" x2="98" y2="34" stroke="#2C3E50" stroke-width="1" stroke-linecap="round"/>
+  <line x1="86" y1="37" x2="98" y2="40" stroke="#2C3E50" stroke-width="1" stroke-linecap="round"/>
+  
+  <!-- Pelota de juguete -->
+  <circle cx="96" cy="82" r="10" fill="#FDCB6E"/>
+  <circle cx="96" cy="82" r="7" fill="#F39C12" opacity="0.6"/>
+  <path d="M96 72 Q100 82 96 92" stroke="#E67E22" stroke-width="1.5" fill="none" opacity="0.5"/>
+  <path d="M86 82 Q96 78 106 82" stroke="#E67E22" stroke-width="1.5" fill="none" opacity="0.5"/>
+  
+  <!-- Rayas sutiles -->
+  <path d="M40 51 Q46 47 52 51" stroke="#D63B7A" stroke-width="1.2" fill="none" opacity="0.3"/>
+  <path d="M36 55 Q42 51 48 55" stroke="#D63B7A" stroke-width="1.2" fill="none" opacity="0.25"/>
+  
+  <!-- Líneas de movimiento -->
+  <path d="M95 20 L100 18" stroke="#6B7280" stroke-width="1.5" fill="none" opacity="0.4" stroke-linecap="round"/>
+  <path d="M97 25 L102 24" stroke="#6B7280" stroke-width="1.5" fill="none" opacity="0.3" stroke-linecap="round"/>
+  <path d="M14 50 L8 48" stroke="#6B7280" stroke-width="1.5" fill="none" opacity="0.35" stroke-linecap="round"/>
+  
+  <!-- Estrellitas de diversión -->
+  <path d="M104 14 L105 17 L108 17 L106 19 L107 22 L104 20 L101 22 L102 19 L100 17 L103 17 Z" fill="#FDCB6E" opacity="0.5"/>
+</svg>

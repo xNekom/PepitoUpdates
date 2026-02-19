@@ -1,0 +1,42 @@
+<svg width="80" height="40" viewBox="0 0 80 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .wave1 {
+        animation: wave 2s ease-in-out infinite;
+        animation-delay: 0s;
+      }
+      .wave2 {
+        animation: wave 2s ease-in-out infinite;
+        animation-delay: 0.3s;
+      }
+      .wave3 {
+        animation: wave 2s ease-in-out infinite;
+        animation-delay: 0.6s;
+      }
+      
+      @keyframes wave {
+        0%, 100% {
+          opacity: 0.3;
+          transform: scaleY(0.5);
+        }
+        50% {
+          opacity: 1;
+          transform: scaleY(1);
+        }
+      }
+    </style>
+  </defs>
+  
+  <!-- Ondas de actividad -->
+  <circle class="wave1" cx="20" cy="20" r="15" fill="none" stroke="#00B894" stroke-width="2" opacity="0.3"/>
+  <circle class="wave2" cx="20" cy="20" r="10" fill="none" stroke="#00B894" stroke-width="2" opacity="0.3"/>
+  <circle class="wave3" cx="20" cy="20" r="5" fill="none" stroke="#00B894" stroke-width="2" opacity="0.3"/>
+  
+  <!-- Centro de la actividad -->
+  <circle cx="20" cy="20" r="3" fill="#00B894"/>
+  
+  <!-- Líneas de señal -->
+  <path class="wave1" d="M45 15 Q55 20 45 25" stroke="#FF6B35" stroke-width="2" fill="none" opacity="0.3"/>
+  <path class="wave2" d="M50 12 Q62 20 50 28" stroke="#FF6B35" stroke-width="2" fill="none" opacity="0.3"/>
+  <path class="wave3" d="M55 10 Q70 20 55 30" stroke="#FF6B35" stroke-width="2" fill="none" opacity="0.3"/>
+</svg>
