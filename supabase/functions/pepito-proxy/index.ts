@@ -6,7 +6,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 interface PepitoStatus {
   event: string
   type: string
-  timestamp: number
+  timestamp?: number | string
+  time?: number | string
   img: string
 }
 
@@ -168,16 +169,30 @@ async function fetchPepitoStatus(context: RequestContext): Promise<PepitoActivit
   }
   
   const pepitoData: PepitoStatus = await response.json()
+
+  const rawTimestamp = pepitoData.time ?? pepitoData.timestamp
+  let unixSeconds = Math.floor(Date.now() / 1000)
+
+  if (typeof rawTimestamp === 'number' && Number.isFinite(rawTimestamp)) {
+    unixSeconds = rawTimestamp
+  } else if (typeof rawTimestamp === 'string') {
+    const parsed = Number.parseInt(rawTimestamp, 10)
+    if (Number.isFinite(parsed)) {
+      unixSeconds = parsed
+    }
+  }
+
+  const timestampIso = new Date(unixSeconds * 1000).toISOString()
   
   // Transform to our enhanced format
   const activity: PepitoActivity = {
     id: `pepito_${Date.now()}`,
-    event: pepitoData.event,
-    type: pepitoData.type,
-    timestamp: new Date(pepitoData.timestamp * 1000).toISOString(),
-    img: pepitoData.img,
+    event: pepitoData.event || 'pepito',
+    type: pepitoData.type || 'unknown',
+    timestamp: timestampIso,
+    img: pepitoData.img || '',
     confidence: 1.0,
-    imageUrl: pepitoData.img,
+    imageUrl: pepitoData.img || '',
     source: 'edge_function',
     cached: false,
     authenticated: false, // Will be updated by caller
