@@ -61,14 +61,14 @@ class ApiConfig {
   static Map<String, String> get defaultHeaders => {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    'User-Agent': 'PepitoUpdates/1.0.0',
+    if (!kIsWeb) 'User-Agent': 'PepitoUpdates/1.0.0',
   };
   
   // Headers para Edge Functions
   static Map<String, String> get edgeFunctionHeaders => {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    'User-Agent': 'PepitoUpdates/1.0.0',
+    if (!kIsWeb) 'User-Agent': 'PepitoUpdates/1.0.0',
     'Authorization': 'Bearer $supabaseAnonKey',
     'apikey': supabaseAnonKey,
   };

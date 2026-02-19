@@ -48,7 +48,7 @@ class SecureApiService {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'User-Agent': 'PepitoApp/${Environment.appVersion}',
+        if (!kIsWeb) 'User-Agent': 'PepitoApp/${Environment.appVersion}',
         'X-Client-Platform': kIsWeb ? 'web' : Platform.operatingSystem,
         'Authorization': 'Bearer ${Environment.supabaseAnonKey}',
         'apikey': Environment.supabaseAnonKey,

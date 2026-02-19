@@ -216,10 +216,12 @@ async function logSecurityEvent(event: any): Promise<void> {
 }
 
 serve(async (req: Request) => {
+  const requestedHeaders = req.headers.get('access-control-request-headers')
+
   // CORS headers
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-user-id, x-session-id, x-app-version',
+    'Access-Control-Allow-Headers': requestedHeaders || 'authorization, x-client-info, apikey, content-type, x-user-id, x-session-id, x-app-version, x-client-platform, x-request-id, user-agent',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
   }
   

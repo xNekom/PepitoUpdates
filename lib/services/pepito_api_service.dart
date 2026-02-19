@@ -52,7 +52,7 @@ class PepitoApiService {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'User-Agent': 'PepitoApp/${Environment.appVersion}',
+        if (!kIsWeb) 'User-Agent': 'PepitoApp/${Environment.appVersion}',
         if (ApiConfig.apiKey.isNotEmpty) 'Authorization': 'Bearer ${ApiConfig.apiKey}',
       },
     ));
