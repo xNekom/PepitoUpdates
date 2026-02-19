@@ -381,9 +381,11 @@ class _SecurityInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     // Agregar headers de seguridad adicionales
-    options.headers['X-Requested-With'] = 'PepitoApp';
-    options.headers['X-Client-Type'] = 'mobile';
-    options.headers['X-API-Version'] = '1.0';
+    if (!kIsWeb) {
+      options.headers['X-Requested-With'] = 'PepitoApp';
+      options.headers['X-Client-Type'] = 'mobile';
+      options.headers['X-API-Version'] = '1.0';
+    }
     
     // Validar que no se envíen datos sensibles en logs
     if (options.data is Map) {
