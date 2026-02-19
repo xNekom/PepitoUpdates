@@ -91,8 +91,11 @@ class ApiConfig {
   
   // Determinar si usar Edge Functions como principal
   static bool get useEdgeFunctions {
-    // En desarrollo web, nunca usar Edge Functions para evitar problemas de CORS y autenticación
-    if (kIsWeb && kDebugMode) return false;
+    // En web de producción, forzar Edge Functions para evitar CORS contra api.thecatdoor.com
+    if (kIsWeb) {
+      if (kDebugMode) return false;
+      return isEdgeFunctionConfigured;
+    }
     return isEdgeFunctionConfigured && !EnvironmentConfig.isDevelopment;
   }
   
