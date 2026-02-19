@@ -138,7 +138,7 @@ class PepitoApiService {
         Logger.warning('[API] Error con Edge Function, usando fallback a API directa: $e');
         // En desarrollo/debug, permitir siempre fallback a API directa
         // En producción, solo permitir si no estamos en web
-        if (!kDebugMode && kIsWeb) {
+        if (kIsWeb) {
           Logger.warning('[API] En web producción, no se hace fallback a API directa por restricciones de CORS');
           throw Exception('Error obteniendo estado: Las Edge Functions no están disponibles y la API directa no es compatible con web por restricciones de CORS.\n\nPara desarrollo web:\n• flutter run -d chrome (funciona en debug)\n• run_with_local_proxy.bat (recomendado)\n• run_with_cors_disabled.bat\n\nPara móvil/desktop: Funciona automáticamente.');
         }
@@ -147,6 +147,10 @@ class PepitoApiService {
     }
     
     // Fallback a API directa solo si Edge Functions no están disponibles o fallan
+    if (kIsWeb) {
+      throw Exception('En web no se permite fallback a API directa. Verifica disponibilidad de Edge Function pepito-proxy.');
+    }
+
     if (ApiConfig.isConfigured) {
       Logger.info('[API] Usando API directa como fallback');
       return await _getStatusDirectly();
@@ -237,7 +241,7 @@ class PepitoApiService {
         Logger.warning('[API] Error con Edge Function para actividades, usando fallback a API directa: $e');
         // En desarrollo/debug, permitir siempre fallback a API directa
         // En producción, solo permitir si no estamos en web
-        if (!kDebugMode && kIsWeb) {
+        if (kIsWeb) {
           Logger.warning('[API] En web producción, no se hace fallback a API directa por restricciones de CORS');
           throw Exception('Error obteniendo actividades: Las Edge Functions no están disponibles y la API directa no es compatible con web por restricciones de CORS.\n\nSoluciones:\n• Use run_with_local_proxy.bat (recomendado)\n• Use run_with_cors_disabled.bat\n• Use móvil/desktop para desarrollo\n\nPara producción: Configure CORS en el servidor API o use solo Edge Functions.');
         }
@@ -246,6 +250,10 @@ class PepitoApiService {
     }
     
     // Fallback a API directa solo si Edge Functions no están disponibles o fallan
+    if (kIsWeb) {
+      throw Exception('En web no se permite fallback a API directa. Verifica disponibilidad de Edge Function pepito-proxy.');
+    }
+
     if (ApiConfig.isConfigured) {
       Logger.info('[API] Usando API directa como fallback para actividades');
       return await _getActivitiesDirectly(

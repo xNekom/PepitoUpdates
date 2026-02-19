@@ -221,7 +221,7 @@ serve(async (req: Request) => {
   // CORS headers
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': requestedHeaders || 'authorization, x-client-info, apikey, content-type, x-user-id, x-session-id, x-app-version, x-client-platform, x-request-id, user-agent',
+    'Access-Control-Allow-Headers': requestedHeaders || 'authorization, x-client-info, x-api-version, apikey, content-type, x-user-id, x-session-id, x-app-version, x-client-platform, x-request-id, user-agent',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
   }
   
