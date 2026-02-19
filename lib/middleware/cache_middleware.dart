@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
+import 'package:flutter/foundation.dart';
 import '../services/cache_service.dart';
 import '../utils/logger.dart';
 
@@ -44,8 +45,10 @@ class DistributedCacheInterceptor extends Interceptor {
       final interceptor = _interceptors![endpointType] ?? _interceptors!['default']!;
       
       // Agregar headers de cache
-      options.headers['X-Cache-Type'] = endpointType;
-      options.headers['X-Cache-Strategy'] = _getCacheStrategy(endpointType);
+      if (!kIsWeb) {
+        options.headers['X-Cache-Type'] = endpointType;
+        options.headers['X-Cache-Strategy'] = _getCacheStrategy(endpointType);
+      }
       
       // Delegar al interceptor específico
       interceptor.onRequest(options, handler);
