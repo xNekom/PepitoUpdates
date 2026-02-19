@@ -50,6 +50,8 @@ class SecureApiService {
         'Accept': 'application/json',
         'User-Agent': 'PepitoApp/${Environment.appVersion}',
         'X-Client-Platform': kIsWeb ? 'web' : Platform.operatingSystem,
+        'Authorization': 'Bearer ${Environment.supabaseAnonKey}',
+        'apikey': Environment.supabaseAnonKey,
       },
     ));
     
@@ -268,6 +270,9 @@ class SecureApiService {
       'X-Client-Platform': kIsWeb ? 'web' : Platform.operatingSystem,
       'X-App-Version': Environment.appVersion,
       'X-Request-ID': DateTime.now().millisecondsSinceEpoch.toString(),
+      // Añadir autenticación de Supabase
+      'Authorization': 'Bearer ${Environment.supabaseAnonKey}',
+      'apikey': Environment.supabaseAnonKey,
     };
     
     // Añadir información del usuario si está autenticado
