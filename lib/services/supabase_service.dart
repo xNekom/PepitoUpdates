@@ -83,11 +83,18 @@ class SupabaseService {
     DateTime? since,
   }) async {
     try {
-      Logger.info('Obteniendo historial de estado desde Supabase');
+      Logger.info('Obteniendo historial de estado desde Supabase${since != null ? ' desde ${since.toIso8601String()}' : ''}');
       
-      final response = await _client
+      var query = _client
         .from(SupabaseConfig.activitiesTable)
-        .select()
+        .select();
+      
+      // Filtrar por fecha si se proporciona
+      if (since != null) {
+        query = query.gte('timestamp', since.toIso8601String());
+      }
+      
+      final response = await query
         .order('timestamp', ascending: false)
         .limit(limit);
       final activities = response

@@ -73,52 +73,67 @@ serve(async (req: Request) => {
     const pepitoStatus: PepitoStatus = await apiResponse.json()
     console.log('📡 Estado obtenido de la API:', pepitoStatus)
 
-    // Obtener el último estado guardado
-    const { data: lastActivity, error: queryError } = await supabaseClient
+    // Validar timestamp de la API
+    let apiTimestamp = pepitoStatus.time
+    if (!apiTimestamp || apiTimestamp < 1000000000) {
+      // Si el timestamp parece inválido (año 1970), usar la hora actual
+      console.warn('⚠️ Timestamp inválido de API:', apiTimestamp, 'usando hora actual')
+      apiTimestamp = Math.floor(Date.now() / 1000)
+    }
+
+    // Obtener actividades recientes (últimos 5 minutos) del mismo tipo
+    const fiveMinutesAgo = Math.floor(Date.now() / 1000) - 300
+    const fiveMinutesAgoIso = new Date((fiveMinutesAgo * 1000)).toISOString()
+    
+    const { data: recentActivities, error: queryError } = await supabaseClient
       .from('pepito_activities')
-      .select('timestamp, type')
-      .order('timestamp', { ascending: false })
+      .select('timestamp, type, created_at')
+      .gte('timestamp', fiveMinutesAgoIso)
+      .eq('type', pepitoStatus.type)
+      .order('created_at', { ascending: false })
       .limit(1)
-      .single()
 
     if (queryError && queryError.code !== 'PGRST116') { // PGRST116 = no rows found
-      console.error('❌ Error consultando última actividad:', queryError)
+      console.error('❌ Error consultando actividades recientes:', queryError)
       throw queryError
     }
 
     let shouldInsert = false
     const now = Math.floor(Date.now() / 1000)
 
-    if (!lastActivity) {
-      // No hay actividades previas, insertar
+    if (!recentActivities || recentActivities.length === 0) {
+      // No hay actividades recientes del mismo tipo, insertar
       shouldInsert = true
-      console.log('📝 No hay actividades previas, insertando primera actividad')
+      console.log('📝 No hay actividades recientes del mismo tipo, insertando')
     } else {
-      // Verificar si ha pasado más de 1 minuto o si el estado cambió
-      const timeDiff = now - lastActivity.timestamp
-      const statusChanged = lastActivity.type !== pepitoStatus.type
+      const lastActivity = recentActivities[0]
+      const lastActivityTime = Math.floor(new Date(lastActivity.timestamp).getTime() / 1000)
+      const timeDiff = now - lastActivityTime
       
-      if (timeDiff > 60 || statusChanged) {
+      if (timeDiff > 60) {
+        // Más de 1 minuto desde la última actividad del mismo tipo, insertar
         shouldInsert = true
-        console.log(`📝 Insertando nueva actividad: tiempo=${timeDiff}s, cambio=${statusChanged}`)
+        console.log(`📝 Insertando nueva actividad: tiempo=${timeDiff}s desde la última del mismo tipo`)
       } else {
-        console.log('⏭️ No es necesario insertar, estado reciente y sin cambios')
+        console.log(`⏭️ No es necesario insertar, actividad similar hace ${timeDiff}s`)
       }
     }
 
     if (shouldInsert) {
       // Insertar nueva actividad con la estructura correcta
+      const activityTimestamp = new Date(apiTimestamp * 1000).toISOString()
+      
       const { data: insertData, error: insertError } = await supabaseClient
         .from('pepito_activities')
         .insert({
           event: 'pepito', // Campo requerido
           type: pepitoStatus.type, // 'in' o 'out'
-          timestamp: new Date(pepitoStatus.time * 1000).toISOString(), // Formato ISO para Supabase
+          timestamp: activityTimestamp, // Formato ISO para Supabase
           created_at: new Date().toISOString(),
           description: `Pepito ${pepitoStatus.type === 'in' ? 'entró' : 'salió'}`, // Campo requerido
           source: 'edge_function', // Campo requerido
           metadata: {
-            api_timestamp: pepitoStatus.time,
+            api_timestamp: apiTimestamp,
             processed_at: new Date().toISOString(),
             automatic_check: true
           }
