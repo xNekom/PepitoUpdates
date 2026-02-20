@@ -1,10 +1,21 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+const defaultCorsAllowedHeaders = [
+  'authorization',
+  'x-client-info',
+  'x-api-version',
+  'apikey',
+  'content-type',
+  'x-user-id',
+  'x-session-id',
+  'x-app-version',
+  'x-client-platform',
+  'x-request-id',
+  'x-cache-type',
+  'x-cache-strategy',
+  'user-agent',
+].join(', ')
 
 interface PepitoStatus {
   event: string;
@@ -14,6 +25,13 @@ interface PepitoStatus {
 }
 
 serve(async (req: Request) => {
+  const requestedHeaders = req.headers.get('access-control-request-headers')
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': requestedHeaders || defaultCorsAllowedHeaders,
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  }
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
