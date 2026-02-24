@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:fluent_ui/fluent_ui.dart' as fluent;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -69,16 +69,8 @@ class PepitoApp extends ConsumerWidget {
     
     ref.read(sseServiceProvider).connect();
     
-    // Determinar qué tipo de app usar según la plataforma
-    if (kIsWeb) {
-      return _buildMaterialApp(themeMode, locale);
-    } else if (defaultTargetPlatform == TargetPlatform.windows) {
-      return _buildFluentApp(themeMode, locale);
-    } else if (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.macOS) {
-      return _buildLiquidGlassApp(themeMode, locale);
-    } else {
-      return _buildMaterialApp(themeMode, locale);
-    }
+    // Proveer una única y espectacular experiencia Premium UI para todas las plataformas
+    return _buildLiquidGlassApp(themeMode, locale);
   }
   
   ThemeMode _convertToThemeMode(AppThemeMode appThemeMode) {
@@ -92,27 +84,6 @@ class PepitoApp extends ConsumerWidget {
     }
   }
   
-  Widget _buildMaterialApp(ThemeMode themeMode, Locale locale) {
-    return MaterialApp(
-      title: 'Pépito',
-      debugShowCheckedModeBanner: EnvironmentConfig.enableDebugMode,
-      themeMode: themeMode,
-      theme: kIsWeb ? AppTheme.webTheme : AppTheme.lightTheme,
-      darkTheme: kIsWeb ? AppTheme.webDarkTheme : AppTheme.darkTheme,
-      locale: locale,
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('es', ''),
-        Locale('en', ''),
-      ],
-      home: const SelectionArea(child: HomeScreen()),
-    );
-  }
 
   Widget _buildLiquidGlassApp(ThemeMode themeMode, Locale locale) {
     return MaterialApp(
@@ -135,26 +106,5 @@ class PepitoApp extends ConsumerWidget {
       home: const HomeScreen(),
     );
   }
-  
-  Widget _buildFluentApp(ThemeMode themeMode, Locale locale) {
-    return fluent.FluentApp(
-      title: 'Pépito',
-      debugShowCheckedModeBanner: EnvironmentConfig.enableDebugMode,
-      themeMode: themeMode,
-      theme: AppTheme.fluentLightTheme,
-      darkTheme: AppTheme.fluentDarkTheme,
-      locale: locale,
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('es', ''),
-        Locale('en', ''),
-      ],
-      home: const HomeScreen(),
-    );
-  }
+
 }

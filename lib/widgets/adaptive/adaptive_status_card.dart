@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import '../liquid_glass/status/liquid_status_card.dart';
-import '../material_expressive/status_card.dart';
-import '../fluent_design/fluent_status_card.dart';
-import '../../utils/platform_detector.dart';
 
-/// Widget adaptivo que selecciona automáticamente entre Liquid Glass, Material Expressive y Fluent Design
+/// Widget que ahora renderiza Liquid Glass como estándar premium para toda la app.
 /// basado en la plataforma del dispositivo
 class AdaptiveStatusCard extends StatelessWidget {
   final dynamic status;
@@ -20,26 +17,10 @@ class AdaptiveStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Seleccionar el widget apropiado basado en la plataforma
-    switch (PlatformDetector.recommendedStyle) {
-      case WidgetStyle.liquidGlass:
-        return LiquidStatusCard(
-          status: status,
-          onRefresh: onRefresh,
-          isLoading: isLoading,
-        );
-      case WidgetStyle.fluentDesign:
-        return FluentStatusCard(
-          status: status,
-          onRefresh: onRefresh,
-          isLoading: isLoading,
-        );
-      case WidgetStyle.materialExpressive:
-        return StatusCard(
-          status: status,
-          onRefresh: onRefresh,
-          isLoading: isLoading,
-        );
-    }
+    return LiquidStatusCard(
+      status: status,
+      onRefresh: onRefresh,
+      isLoading: isLoading,
+    );
   }
 }

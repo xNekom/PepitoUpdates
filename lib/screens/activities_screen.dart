@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import '../widgets/cat_paw_icon.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/pepito_providers.dart';
@@ -8,6 +9,8 @@ import '../utils/date_utils.dart';
 import '../models/pepito_activity.dart';
 import '../generated/app_localizations.dart';
 import '../widgets/liquid_glass/liquid_app_bar.dart';
+import '../widgets/liquid_glass/circles_background.dart';
+import '../theme/liquid_glass/glass_effects.dart';
 
 class ActivitiesScreen extends ConsumerStatefulWidget {
   const ActivitiesScreen({super.key});
@@ -102,10 +105,14 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: CustomScrollView(
-        controller: _scrollController,
-        slivers: [
-          _buildAppBar(colorScheme),
+      body: Stack(
+        children: [
+          // Fondo animado ambiental Liquid Glass
+          const CirclesBackground(),
+          CustomScrollView(
+            controller: _scrollController,
+            slivers: [
+              _buildAppBar(colorScheme),
           _buildFilterSection(),
           _buildActivitiesList(),
           if (_isLoadingMore)
@@ -116,6 +123,8 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
               ),
             ),
           const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+        ],
+      ),
         ],
       ),
       floatingActionButton: _buildScrollToTopFab(),
@@ -187,14 +196,26 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
 
           return Container(
             margin: EdgeInsets.all(margin),
-            padding: EdgeInsets.all(padding),
             decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: AppTheme.primaryColor.withValues(alpha: 0.3),
-              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: GlassEffects.glassShadows(accentColor: AppTheme.primaryColor, intensity: 0.5),
             ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(
+                  sigmaX: GlassEffects.blurSigmaLight,
+                  sigmaY: GlassEffects.blurSigmaLight,
+                ),
+                child: Container(
+                  padding: EdgeInsets.all(padding),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.05),
+                    border: Border.all(
+                      color: AppTheme.primaryColor.withValues(alpha: GlassEffects.borderOpacity),
+                      width: 0.5,
+                    ),
+                  ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -271,10 +292,13 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
                       ),
                   ],
                 ),
-              ],
+                ],
+              ),
             ),
-          );
-        },
+          ),
+        ),
+      );
+    },
       ),
     );
   }
@@ -369,17 +393,35 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: AppTheme.primaryColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
+        boxShadow: GlassEffects.glassShadows(accentColor: AppTheme.primaryColor, intensity: 0.3),
       ),
-      child: Text(
-        dateText,
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: AppTheme.primaryColor,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: GlassEffects.blurSigmaLight,
+            sigmaY: GlassEffects.blurSigmaLight,
+          ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.05),
+              border: Border.all(
+                color: AppTheme.primaryColor.withValues(alpha: GlassEffects.borderOpacity),
+                width: 0.5,
+              ),
+            ),
+            child: Text(
+              dateText,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.primaryColor,
+              ),
+            ),
+          ),
         ),
       ),
     );

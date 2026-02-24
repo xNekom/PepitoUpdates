@@ -118,7 +118,7 @@ class _LiquidBubblesTransitionState extends State<LiquidBubblesTransition>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: widget.bubbleColor.withOpacity(0.5),
+                      color: widget.bubbleColor.withValues(alpha: 0.5),
                       blurRadius: currentSize / 2,
                       spreadRadius: currentSize / 4,
                     ),

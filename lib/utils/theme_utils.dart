@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:material_color_utilities/material_color_utilities.dart';
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:flutter/cupertino.dart';
+import '../theme/premium_typography.dart';
 
 class AppTheme {
   // M3E - Colores expresivos y emocionales de Pépito
@@ -1287,6 +1288,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
+      textTheme: PremiumTypography.getLightTextTheme(),
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryOrange,
         brightness: Brightness.light,
@@ -1314,6 +1316,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
+      textTheme: PremiumTypography.getDarkTextTheme(),
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryOrange,
         brightness: Brightness.dark,
@@ -1344,17 +1347,9 @@ class AppTheme {
     );
   }
   
-  // Obtener el tema según la plataforma
+  // Obtener el tema (siempre premium Liquid Glass)
   static ThemeData getPlatformTheme(Brightness brightness) {
-    if (kIsWeb) {
-      return brightness == Brightness.light ? webTheme : webDarkTheme;
-    }
-    
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.windows) {
-      return windowsTheme;
-    }
-    
-    return brightness == Brightness.light ? lightTheme : darkTheme;
+    return brightness == Brightness.light ? liquidGlassLightTheme : liquidGlassDarkTheme;
   }
 
   // Colores de estado para actividades
@@ -1388,30 +1383,18 @@ class AppTheme {
     end: Alignment.bottomRight,
   );
   
-  // Helper para obtener colores compatibles con ambos tipos de tema
+  // Helper unificado para obtener colores del tema
   static AppColors getColors(BuildContext context) {
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.windows) {
-      final fluentTheme = fluent.FluentTheme.of(context);
-      return AppColors(
-        primary: fluentTheme.accentColor.defaultBrushFor(fluentTheme.brightness),
-        onPrimary: fluentTheme.brightness == fluent.Brightness.light ? Colors.white : Colors.black,
-        surface: fluentTheme.micaBackgroundColor,
-        onSurface: fluentTheme.typography.body?.color ?? Colors.black,
-        onSurfaceVariant: (fluentTheme.typography.body?.color ?? Colors.black).withValues(alpha: 0.7),
-        error: errorColor,
-      );
-    } else {
-      final theme = Theme.of(context);
-      final colorScheme = theme.colorScheme;
-      return AppColors(
-        primary: colorScheme.primary,
-        onPrimary: colorScheme.onPrimary,
-        surface: colorScheme.surface,
-        onSurface: colorScheme.onSurface,
-        onSurfaceVariant: colorScheme.onSurfaceVariant,
-        error: colorScheme.error,
-      );
-    }
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return AppColors(
+      primary: colorScheme.primary,
+      onPrimary: colorScheme.onPrimary,
+      surface: colorScheme.surface,
+      onSurface: colorScheme.onSurface,
+      onSurfaceVariant: colorScheme.onSurfaceVariant,
+      error: colorScheme.error,
+    );
   }
 }
 

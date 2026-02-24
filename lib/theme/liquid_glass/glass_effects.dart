@@ -2,17 +2,17 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 
 class GlassEffects {
-  // Blur
+  // Blur - VisionOS Apple-like look
   static const double blurSigmaLight = 20.0;
-  static const double blurSigmaHeavy = 30.0;
+  static const double blurSigmaHeavy = 35.0;
 
-  // Opacidades
-  static const double backgroundOpacityLight = 0.08;
-  static const double backgroundOpacityMedium = 0.12;
-  static const double backgroundOpacityHeavy = 0.18;
+  // Opacidades - Adjusted for solid frosted contrast
+  static const double backgroundOpacityLight = 0.50; // Blanco más solido para luz
+  static const double backgroundOpacityMedium = 0.35; // Oscuro translúcido
+  static const double backgroundOpacityHeavy = 0.60;
 
-  static const double borderOpacity = 0.25;
-  static const double shadowOpacity = 0.15;
+  static const double borderOpacity = 0.20;
+  static const double shadowOpacity = 0.04;
 
   // Border radius
   static const double radiusSmall = 12.0;
@@ -34,14 +34,8 @@ class GlassEffects {
     return [
       BoxShadow(
         color: accentColor.withValues(alpha: shadowOpacity * intensity),
-        blurRadius: 20.0 * intensity,
-        spreadRadius: 2.0 * intensity,
-        offset: Offset(0, 4 * intensity),
-      ),
-      BoxShadow(
-        color: accentColor.withValues(alpha: shadowOpacity * 0.5 * intensity),
-        blurRadius: 40.0 * intensity,
-        spreadRadius: 1.0 * intensity,
+        blurRadius: 30.0 * intensity,
+        spreadRadius: 0.0,
         offset: Offset(0, 8 * intensity),
       ),
     ];
@@ -86,14 +80,14 @@ class GlassEffects {
       borderRadius: borderRadius,
       border: Border.all(
         color: accentColor.withValues(alpha: borderOpacity),
-        width: 1.0,
+        width: 0.5,
       ),
       boxShadow: [
         BoxShadow(
-          color: accentColor.withValues(alpha: 0.1),
-          blurRadius: 8.0,
-          spreadRadius: 0.5,
-          offset: const Offset(0, 2),
+          color: accentColor.withValues(alpha: 0.05),
+          blurRadius: 10.0,
+          spreadRadius: 0.0,
+          offset: const Offset(0, 4),
         ),
       ],
     );
@@ -134,8 +128,8 @@ class GlassEffects {
     );
   }
 
-  // Container con efecto glass completo
-  static Container glassContainer({
+  // Container con efecto glass completo - ESTRUCTURA CORREGIDA
+  static Widget glassContainer({
     required Widget child,
     required Color accentColor,
     required Brightness brightness,
@@ -148,25 +142,29 @@ class GlassEffects {
         : const Color(0xFFFFFFFF).withValues(alpha: backgroundOpacityLight);
 
     return Container(
-      padding: padding,
       decoration: BoxDecoration(
         borderRadius: borderRadius,
-        color: backgroundColor,
-        gradient: glassGradient(
-          accentColor: accentColor,
-          brightness: brightness,
-        ),
-        border: Border.all(
-          color: accentColor.withValues(alpha: borderOpacity),
-          width: 1.0,
-        ),
         boxShadow: glassShadows(accentColor: accentColor),
       ),
       child: ClipRRect(
         borderRadius: borderRadius,
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
-          child: child,
+          child: Container(
+            padding: padding,
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              gradient: glassGradient(
+                accentColor: accentColor,
+                brightness: brightness,
+              ),
+              border: Border.all(
+                color: accentColor.withValues(alpha: borderOpacity),
+                width: 0.5,
+              ),
+            ),
+            child: child,
+          ),
         ),
       ),
     );

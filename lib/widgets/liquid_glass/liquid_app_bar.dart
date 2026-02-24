@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../theme/liquid_glass/apple_colors.dart';
+import 'dart:ui';
 
 class LiquidAppBar extends StatelessWidget {
   final String title;
@@ -39,6 +39,29 @@ class LiquidAppBar extends StatelessWidget {
       floating: false,
       snap: false,
       actions: actions,
+      flexibleSpace: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 30.0, sigmaY: 30.0),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  (isDark ? Colors.black : Colors.white).withValues(alpha: 0.4),
+                  (isDark ? Colors.black : Colors.white).withValues(alpha: 0.1),
+                ],
+              ),
+              border: Border(
+                bottom: BorderSide(
+                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
+                  width: 1.0,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

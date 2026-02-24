@@ -108,33 +108,36 @@ class _GlassCardState extends State<GlassCard>
             return Transform.scale(
               scale: _scaleAnimation.value,
               child: Container(
-                padding: widget.padding ?? const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   borderRadius: borderRadius,
-                  // Theme-aware base color for glass effect
-                  color: (brightness == Brightness.dark
-                      ? CupertinoColors.black
-                      : CupertinoColors.white).withValues(alpha: backgroundOpacity),
-                  gradient: GlassEffects.glassGradient(
-                    accentColor: accentColor,
-                    brightness: brightness,
-                  ),
-                  border: Border.all(
-                    color: accentColor.withValues(
-                      alpha: _isHovered ? GlassEffects.borderOpacity * 1.5 : GlassEffects.borderOpacity,
-                    ),
-                    width: 1.0,
-                  ),
                   boxShadow: widget.customShadows ?? GlassEffects.glassShadows(
                     accentColor: accentColor,
-                    intensity: _isHovered ? 1.2 : 1.0,
+                    intensity: _isHovered ? 1.2 : 0.8,
                   ),
                 ),
                 child: ClipRRect(
                   borderRadius: borderRadius,
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
-                    child: widget.child,
+                    child: Container(
+                      padding: widget.padding ?? const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: (brightness == Brightness.dark
+                            ? CupertinoColors.black
+                            : CupertinoColors.white).withValues(alpha: backgroundOpacity),
+                        gradient: GlassEffects.glassGradient(
+                          accentColor: accentColor,
+                          brightness: brightness,
+                        ),
+                        border: Border.all(
+                          color: accentColor.withValues(
+                            alpha: _isHovered ? GlassEffects.borderOpacity * 1.5 : GlassEffects.borderOpacity,
+                          ),
+                          width: 0.5,
+                        ),
+                      ),
+                      child: widget.child,
+                    ),
                   ),
                 ),
               ),

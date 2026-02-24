@@ -1615,7 +1615,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(30),
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+                  filter: ImageFilter.blur(sigmaX: 50.0, sigmaY: 50.0),
                   child: Container(
                     width: 260,
                     padding: const EdgeInsets.symmetric(
@@ -1668,7 +1668,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             )
           : ClipRect(
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+                filter: ImageFilter.blur(sigmaX: 50.0, sigmaY: 50.0),
                 child: Container(
                   color: (isDark ? Colors.black : Colors.white).withValues(
                     alpha: 0.2,
