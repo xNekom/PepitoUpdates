@@ -5,13 +5,15 @@ enum AppPlatform {
   iOS,
   macOS,
   android,
+  windows,
   web,
   other,
 }
 
 enum WidgetStyle {
-  materialExpressive,  // Android/Web/Windows/Linux
+  materialExpressive,  // Android/Web
   liquidGlass,        // iOS/macOS
+  fluentDesign,       // Windows
 }
 
 class PlatformDetector {
@@ -21,6 +23,7 @@ class PlatformDetector {
     if (Platform.isIOS) return AppPlatform.iOS;
     if (Platform.isMacOS) return AppPlatform.macOS;
     if (Platform.isAndroid) return AppPlatform.android;
+    if (Platform.isWindows) return AppPlatform.windows;
 
     return AppPlatform.other;
   }
@@ -30,10 +33,16 @@ class PlatformDetector {
            currentPlatform == AppPlatform.macOS;
   }
 
+  static bool get isWindows => currentPlatform == AppPlatform.windows;
+
   static WidgetStyle get recommendedStyle {
-    return isAppleEcosystem
-        ? WidgetStyle.liquidGlass
-        : WidgetStyle.materialExpressive;
+    if (isAppleEcosystem) {
+      return WidgetStyle.liquidGlass;
+    } else if (isWindows) {
+      return WidgetStyle.fluentDesign;
+    } else {
+      return WidgetStyle.materialExpressive;
+    }
   }
 
   static bool get supportsCupertinoWidgets => isAppleEcosystem;
@@ -42,6 +51,7 @@ class PlatformDetector {
   static bool get isMobile => currentPlatform == AppPlatform.iOS ||
                                currentPlatform == AppPlatform.android;
   static bool get isDesktop => currentPlatform == AppPlatform.macOS ||
+                                currentPlatform == AppPlatform.windows ||
                                 currentPlatform == AppPlatform.other;
 
   static String get platformName {
@@ -52,6 +62,8 @@ class PlatformDetector {
         return 'macOS';
       case AppPlatform.android:
         return 'Android';
+      case AppPlatform.windows:
+        return 'Windows';
       case AppPlatform.web:
         return 'Web';
       case AppPlatform.other:
@@ -60,8 +72,13 @@ class PlatformDetector {
   }
 
   static String get styleName {
-    return recommendedStyle == WidgetStyle.liquidGlass
-        ? 'Liquid Glass'
-        : 'Material Expressive';
+    switch (recommendedStyle) {
+      case WidgetStyle.liquidGlass:
+        return 'Liquid Glass';
+      case WidgetStyle.fluentDesign:
+        return 'Fluent Design';
+      case WidgetStyle.materialExpressive:
+        return 'Material Expressive';
+    }
   }
 }

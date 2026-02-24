@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-import 'dart:ui';
 import '../../../theme/liquid_glass/glass_effects.dart';
 import '../../../utils/platform_detector.dart';
 
@@ -102,12 +101,12 @@ class _ApplePressableState extends State<ApplePressable>
                 ),
                 decoration: BoxDecoration(
                   borderRadius: borderRadius,
-                  color: accentColor.withOpacity(
-                    widget.enabled ? 0.1 : 0.05,
+                  color: accentColor.withValues(
+                    alpha: widget.enabled ? 0.1 : 0.05,
                   ),
                   border: Border.all(
-                    color: accentColor.withOpacity(
-                      widget.enabled ? 0.3 : 0.1,
+                    color: accentColor.withValues(
+                      alpha: widget.enabled ? 0.3 : 0.1,
                     ),
                     width: 1.0,
                   ),

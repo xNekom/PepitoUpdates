@@ -1,18 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:ui';
+import 'package:flutter/rendering.dart';
 import 'dart:async';
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../providers/pepito_providers.dart';
-import '../widgets/status_card.dart';
-import '../widgets/activity_card.dart';
-import '../widgets/statistics_widgets.dart';
-import '../widgets/animated_svg_widget.dart';
+import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:flutter/cupertino.dart';
+import '../models/pepito_activity.dart';
+import '../widgets/adaptive/adaptive_status_card.dart';
+import '../widgets/adaptive/adaptive_activity_card.dart';
+import '../widgets/material_expressive/status_card.dart' as m3_status;
+import '../widgets/material_expressive/activity_card.dart' as m3_activity;
+import '../widgets/material_expressive/statistics_widgets.dart' as m3_stats;
+import '../widgets/liquid_glass/statistics/liquid_statistics_card.dart';
+import '../widgets/material_expressive/animated_svg_widget.dart';
+import '../widgets/liquid_glass/circles_background.dart';
+import '../widgets/liquid_glass/liquid_app_bar.dart';
+import '../widgets/liquid_glass/components/glass_card.dart';
+import '../widgets/liquid_glass/components/frosted_panel.dart';
+import '../widgets/liquid_glass/liquid_bubbles_transition.dart';
+import '../theme/liquid_glass/apple_colors.dart';
+import '../theme/liquid_glass/glass_effects.dart';
 import '../utils/theme_utils.dart';
 import '../utils/supabase_cleanup.dart';
 import '../services/authorization_service.dart';
 import '../generated/app_localizations.dart';
+import '../providers/pepito_providers.dart';
 import 'activities_screen.dart';
 import 'advanced_statistics_screen.dart';
 import 'settings_screen.dart';
@@ -28,17 +43,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
   late RefreshController _refreshController;
-  
+  late ScrollController _scrollController;
+
+  // Estado para el navbar contraído
+  bool _isNavbarCollapsed = false;
+
+  // Animación para el efecto de burbuja líquida
+  AnimationController? _bubbleAnimationController;
+  Animation<double>? _bubbleAnimation;
+  int _currentSelectedIndex = 0;
+  int _previousSelectedIndex = 0;
+
   // Agregar debouncing
   Timer? _refreshDebounceTimer;
   bool _isRefreshing = false;
-
 
   // Método temporal para manejar el error de inserción
   void _handleDatabaseError() {
     // Verificar si el error persiste y mostrar información útil
     if (kDebugMode) print('DEBUG: Verificando estructura de datos...');
-    
+
     // Agregar validación adicional en el próximo refresh
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -56,17 +80,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    _tabController.addListener(_onTabChanged);
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
+
+    // Inicializar animación de burbuja líquida
+    _bubbleAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+
+    _bubbleAnimation = CurvedAnimation(
+      parent: _bubbleAnimationController!,
+      curve: Curves.easeInOut,
+    );
+
     _handleDatabaseError(); // Agregar esta línea
   }
-  
+
   // Método de refresh con debouncing
   Future<void> _debouncedRefresh() async {
     if (_isRefreshing) return;
-    
+
     _refreshDebounceTimer?.cancel();
     _refreshDebounceTimer = Timer(const Duration(milliseconds: 500), () async {
       if (_isRefreshing) return;
-      
+
       _isRefreshing = true;
       try {
         await _refreshController.refreshAll();
@@ -80,7 +119,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   void didChangeDependencies() {
     super.didChangeDependencies();
     _refreshController = ref.read(refreshProvider);
-    
+
     // Initialize data loading
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _refreshController.refreshAll();
@@ -89,72 +128,108 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
+    _scrollController.dispose();
+    _bubbleAnimationController?.dispose();
     _refreshDebounceTimer?.cancel(); // Limpiar timer
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    // Usar el tema apropiado según la plataforma
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.windows) {
-      return _buildFluentUI(context);
-    } else if (kIsWeb) {
-      return _buildWebUI(context);
-    } else {
-      return _buildMaterialUI(context);
+  void _onTabChanged() {
+    if (mounted) {
+      _previousSelectedIndex = _currentSelectedIndex;
+      _currentSelectedIndex = _tabController.index;
+
+      // Reiniciar y ejecutar animación de burbuja del navbar
+      _bubbleAnimationController?.reset();
+      _bubbleAnimationController?.forward();
+
+      setState(() {});
     }
   }
-  
-  Widget _buildWebUI(BuildContext context) {
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    // La lógica de colapso ahora se maneja globalmente con NotificationListener
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _buildLiquidGlassUI(context);
+  }
+
+  Widget _buildMaterial3ExpressiveUI(BuildContext context) {
     final colors = AppTheme.getColors(context);
-    final screenWidth = MediaQuery.of(context).size.width;
-    
-    // Breakpoints más seguros y lógicos
-    final isLargeScreen = screenWidth >= 1200;
-    final isMediumScreen = screenWidth >= 768 && screenWidth < 1200;
-    final isSmallScreen = screenWidth < 768;
-    
+
     return Scaffold(
-      body: Row(
+      body: TabBarView(
+        controller: _tabController,
         children: [
-          // Navegación lateral para web
-          _buildWebSidebar(colors, isLargeScreen, isMediumScreen, isSmallScreen),
-          // Contenido principal
-          Expanded(
+          _buildMaterial3ExpressiveHomeTab(),
+          const ActivitiesScreen(),
+          const AdvancedStatisticsScreen(),
+          const SettingsScreen(),
+        ],
+      ),
+      bottomNavigationBar: _buildMaterial3ExpressiveBottomNavigationBar(colors),
+    );
+  }
+
+  Widget _buildLiquidGlassUI(BuildContext context) {
+    final colors = AppTheme.getColors(context);
+
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      body: Stack(
+        children: [
+          // Fondo animado con círculos
+          const CirclesBackground(),
+          // Contenido principal sin padding inferior para permitir scroll detrás del navbar
+          NotificationListener<UserScrollNotification>(
+            onNotification: (notification) {
+              if (notification.direction == ScrollDirection.reverse) {
+                if (!_isNavbarCollapsed) {
+                  setState(() => _isNavbarCollapsed = true);
+                }
+              } else if (notification.direction == ScrollDirection.forward) {
+                if (_isNavbarCollapsed) {
+                  setState(() => _isNavbarCollapsed = false);
+                }
+              }
+              return true;
+            },
             child: TabBarView(
               controller: _tabController,
               children: [
-                _buildWebHomeTab(isLargeScreen, isMediumScreen),
+                _buildLiquidGlassHomeTab(),
                 const ActivitiesScreen(),
                 const AdvancedStatisticsScreen(),
                 const SettingsScreen(),
               ],
             ),
           ),
+          // Navbar superpuesta en la parte inferior
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: _buildLiquidGlassBottomNavigationBar(colors),
+          ),
         ],
       ),
     );
   }
-  
-  Widget _buildMaterialUI(BuildContext context) {
-    final colors = AppTheme.getColors(context);
-    
-    return Scaffold(
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildHomeTab(),
-          const ActivitiesScreen(),
-          const AdvancedStatisticsScreen(),
-          const SettingsScreen(),
-        ],
-      ),
-      bottomNavigationBar: _buildBottomNavigationBar(colors),
-    );
-  }
-  
-  Widget _buildWebSidebar(AppColors colors, bool isLargeScreen, bool isMediumScreen, bool isSmallScreen) {
+
+  // ignore: unused_element
+  Widget _buildWebSidebar(
+    AppColors colors,
+    bool isLargeScreen,
+    bool isMediumScreen,
+    bool isSmallScreen,
+  ) {
     // Asegurar que minWidth <= maxWidth
     double sidebarWidth;
     double minSidebarWidth;
@@ -162,7 +237,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     double fontSize;
     double iconSize;
     double headerPadding;
-    
+
     if (isSmallScreen) {
       sidebarWidth = 64.0;
       minSidebarWidth = 64.0; // Mismo valor que sidebarWidth
@@ -185,43 +260,51 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       iconSize = 20.0;
       headerPadding = 16.0;
     }
-    
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       width: sidebarWidth,
       constraints: BoxConstraints(
         minWidth: minSidebarWidth, // CORREGIDO
-        maxWidth: sidebarWidth,    // CORREGIDO
+        maxWidth: sidebarWidth, // CORREGIDO
       ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: isDark 
+          colors: isDark
               ? [
-                  AppTheme.expressivePurple.withValues(alpha: 0.08), // M3E: Gradiente expresivo
+                  AppTheme.expressivePurple.withValues(
+                    alpha: 0.08,
+                  ), // M3E: Gradiente expresivo
                   AppTheme.expressiveTeal.withValues(alpha: 0.05),
                   colors.surface,
                 ]
               : [
-                  AppTheme.primaryOrange.withValues(alpha: 0.06), // M3E: Gradiente expresivo
+                  AppTheme.primaryOrange.withValues(
+                    alpha: 0.06,
+                  ), // M3E: Gradiente expresivo
                   AppTheme.expressiveTeal.withValues(alpha: 0.04),
                   const Color(0xFFFAFAFA),
                 ],
         ),
         border: Border(
           right: BorderSide(
-            color: isDark 
-                ? AppTheme.expressiveTeal.withValues(alpha: 0.3) // M3E: Borde colorido
+            color: isDark
+                ? AppTheme.expressiveTeal.withValues(
+                    alpha: 0.3,
+                  ) // M3E: Borde colorido
                 : AppTheme.primaryOrange.withValues(alpha: 0.2),
             width: 2, // M3E: Borde más prominente
           ),
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark 
-                ? AppTheme.expressivePurple.withValues(alpha: 0.2) // M3E: Sombra colorida
+            color: isDark
+                ? AppTheme.expressivePurple.withValues(
+                    alpha: 0.2,
+                  ) // M3E: Sombra colorida
                 : AppTheme.primaryOrange.withValues(alpha: 0.15),
             blurRadius: 16, // M3E: Sombra más expresiva
             offset: const Offset(3, 0),
@@ -235,23 +318,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           Container(
             padding: EdgeInsets.all(headerPadding),
             child: Row(
-              mainAxisAlignment: isSmallScreen ? MainAxisAlignment.center : MainAxisAlignment.start,
+              mainAxisAlignment: isSmallScreen
+                  ? MainAxisAlignment.center
+                  : MainAxisAlignment.start,
               children: [
                 Container(
-                  padding: EdgeInsets.all(isSmallScreen ? 12 : 14), // M3E: Padding más expresivo
+                  padding: EdgeInsets.all(
+                    isSmallScreen ? 12 : 14,
+                  ), // M3E: Padding más expresivo
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        AppTheme.primaryOrange.withValues(alpha: 0.2), // M3E: Gradiente expresivo
+                        AppTheme.primaryOrange.withValues(
+                          alpha: 0.2,
+                        ), // M3E: Gradiente expresivo
                         AppTheme.expressiveTeal.withValues(alpha: 0.15),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20), // M3E: Bordes más expresivos
+                    borderRadius: BorderRadius.circular(
+                      isSmallScreen ? 16 : 20,
+                    ), // M3E: Bordes más expresivos
                     boxShadow: [
                       BoxShadow(
-                        color: AppTheme.primaryOrange.withValues(alpha: 0.3), // M3E: Sombra colorida
+                        color: AppTheme.primaryOrange.withValues(
+                          alpha: 0.3,
+                        ), // M3E: Sombra colorida
                         blurRadius: 8,
                         offset: Offset(0, 4),
                       ),
@@ -275,7 +368,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           style: TextStyle(
                             fontSize: fontSize + 2,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? colors.onSurface : const Color(0xFF1F2937),
+                            color: isDark
+                                ? colors.onSurface
+                                : const Color(0xFF1F2937),
                           ),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
@@ -285,7 +380,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             'Dashboard',
                             style: TextStyle(
                               fontSize: fontSize - 2,
-                              color: isDark 
+                              color: isDark
                                   ? colors.onSurface.withValues(alpha: 0.6)
                                   : const Color(0xFF6B7280),
                             ),
@@ -357,7 +452,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             child: Consumer(
               builder: (context, ref, child) {
                 final isLoading = ref.watch(loadingProvider);
-                
+
                 if (isSmallScreen) {
                   // Solo icono para pantallas pequeñas
                   return Center(
@@ -376,7 +471,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           : Icon(Icons.refresh, size: iconSize - 2),
                       tooltip: 'Actualizar',
                       style: IconButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF6B35).withValues(alpha: 0.1),
+                        backgroundColor: const Color(
+                          0xFFFF6B35,
+                        ).withValues(alpha: 0.1),
                         foregroundColor: const Color(0xFFFF6B35),
                         minimumSize: Size(iconSize + 16, iconSize + 16),
                         padding: EdgeInsets.all(8),
@@ -384,7 +481,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     ),
                   );
                 }
-                
+
                 return SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
@@ -422,7 +519,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ),
     );
   }
-  
+
   Widget _buildWebNavItem({
     required IconData icon,
     required IconData selectedIcon,
@@ -434,11 +531,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     required double iconSize,
   }) {
     final isSelected = _tabController.index == index;
-    
+
     if (isSmallScreen) {
       // Para pantallas pequeñas, mostrar solo iconos centrados
       return Container(
-        margin: const EdgeInsets.symmetric(vertical: 4), // M3E: Espaciado más expresivo
+        margin: const EdgeInsets.symmetric(
+          vertical: 4,
+        ), // M3E: Espaciado más expresivo
         child: Tooltip(
           message: label,
           child: InkWell(
@@ -447,32 +546,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 _tabController.animateTo(index);
               });
             },
-            borderRadius: BorderRadius.circular(18), // M3E: Bordes más expresivos
+            borderRadius: BorderRadius.circular(
+              18,
+            ), // M3E: Bordes más expresivos
             child: Container(
               height: iconSize + 32, // M3E: Altura más expresiva
               width: double.infinity,
               decoration: BoxDecoration(
-                gradient: isSelected 
+                gradient: isSelected
                     ? LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          AppTheme.primaryOrange.withValues(alpha: 0.2), // M3E: Gradiente expresivo
+                          AppTheme.primaryOrange.withValues(
+                            alpha: 0.2,
+                          ), // M3E: Gradiente expresivo
                           AppTheme.expressiveTeal.withValues(alpha: 0.15),
                         ],
                       )
                     : null,
-                borderRadius: BorderRadius.circular(18), // M3E: Bordes más expresivos
-                border: isSelected 
+                borderRadius: BorderRadius.circular(
+                  18,
+                ), // M3E: Bordes más expresivos
+                border: isSelected
                     ? Border.all(
-                        color: AppTheme.primaryOrange.withValues(alpha: 0.3), // M3E: Borde colorido
+                        color: AppTheme.primaryOrange.withValues(
+                          alpha: 0.3,
+                        ), // M3E: Borde colorido
                         width: 2,
                       )
                     : null,
-                boxShadow: isSelected 
+                boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color: AppTheme.primaryOrange.withValues(alpha: 0.2), // M3E: Sombra colorida
+                          color: AppTheme.primaryOrange.withValues(
+                            alpha: 0.2,
+                          ), // M3E: Sombra colorida
                           blurRadius: 8,
                           offset: Offset(0, 4),
                         ),
@@ -485,8 +594,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   color: isSelected
                       ? AppTheme.primaryOrange
                       : (Theme.of(context).brightness == Brightness.dark
-                          ? AppTheme.getColors(context).onSurface.withValues(alpha: 0.6)
-                          : const Color(0xFF6B7280)),
+                            ? AppTheme.getColors(
+                                context,
+                              ).onSurface.withValues(alpha: 0.6)
+                            : const Color(0xFF6B7280)),
                   size: iconSize * 1.1, // M3E: Icono más prominente
                 ),
               ),
@@ -495,31 +606,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         ),
       );
     }
-    
+
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 3), // M3E: Espaciado más expresivo
+      margin: const EdgeInsets.symmetric(
+        vertical: 3,
+      ), // M3E: Espaciado más expresivo
       decoration: BoxDecoration(
-        gradient: isSelected 
+        gradient: isSelected
             ? LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  AppTheme.primaryOrange.withValues(alpha: 0.15), // M3E: Gradiente expresivo
+                  AppTheme.primaryOrange.withValues(
+                    alpha: 0.15,
+                  ), // M3E: Gradiente expresivo
                   AppTheme.expressiveTeal.withValues(alpha: 0.1),
                 ],
               )
             : null,
         borderRadius: BorderRadius.circular(20), // M3E: Bordes más expresivos
-        border: isSelected 
+        border: isSelected
             ? Border.all(
-                color: AppTheme.primaryOrange.withValues(alpha: 0.3), // M3E: Borde colorido
+                color: AppTheme.primaryOrange.withValues(
+                  alpha: 0.3,
+                ), // M3E: Borde colorido
                 width: 2,
               )
             : null,
-        boxShadow: isSelected 
+        boxShadow: isSelected
             ? [
                 BoxShadow(
-                  color: AppTheme.primaryOrange.withValues(alpha: 0.2), // M3E: Sombra colorida
+                  color: AppTheme.primaryOrange.withValues(
+                    alpha: 0.2,
+                  ), // M3E: Sombra colorida
                   blurRadius: 8,
                   offset: Offset(0, 4),
                 ),
@@ -531,7 +650,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         leading: Container(
           padding: EdgeInsets.all(8), // M3E: Padding para el icono
           decoration: BoxDecoration(
-            gradient: isSelected 
+            gradient: isSelected
                 ? LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -541,15 +660,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     ],
                   )
                 : null,
-            borderRadius: BorderRadius.circular(12), // M3E: Bordes expresivos para icono
+            borderRadius: BorderRadius.circular(
+              12,
+            ), // M3E: Bordes expresivos para icono
           ),
           child: Icon(
             isSelected ? selectedIcon : icon,
             color: isSelected
                 ? AppTheme.primaryOrange
                 : (Theme.of(context).brightness == Brightness.dark
-                    ? AppTheme.getColors(context).onSurface.withValues(alpha: 0.6)
-                    : const Color(0xFF6B7280)),
+                      ? AppTheme.getColors(
+                          context,
+                        ).onSurface.withValues(alpha: 0.6)
+                      : const Color(0xFF6B7280)),
             size: iconSize * 1.1, // M3E: Icono más prominente
           ),
         ),
@@ -557,13 +680,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ? Text(
                 label,
                 style: TextStyle(
-                  fontSize: fontSize * 1.05, // M3E: Texto ligeramente más grande
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500, // M3E: Peso más expresivo
+                  fontSize:
+                      fontSize * 1.05, // M3E: Texto ligeramente más grande
+                  fontWeight: isSelected
+                      ? FontWeight.w700
+                      : FontWeight.w500, // M3E: Peso más expresivo
                   color: isSelected
                       ? AppTheme.primaryOrange
                       : (Theme.of(context).brightness == Brightness.dark
-                          ? AppTheme.getColors(context).onSurface
-                          : const Color(0xFF374151)),
+                            ? AppTheme.getColors(context).onSurface
+                            : const Color(0xFF374151)),
                   letterSpacing: 0.5, // M3E: Espaciado de letras expresivo
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -587,7 +713,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ),
     );
   }
-  
+
   Widget _buildFluentUI(BuildContext context) {
     return fluent.NavigationView(
       pane: fluent.NavigationPane(
@@ -624,6 +750,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
+  // ignore: unused_element
   Widget _buildWebHomeTab(bool isLargeScreen, bool isMediumScreen) {
     return RefreshIndicator(
       onRefresh: _debouncedRefresh, // Usar método con debouncing
@@ -639,8 +766,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 child: isLargeScreen
                     ? _buildLargeScreenLayout()
                     : isMediumScreen
-                        ? _buildMediumScreenLayout()
-                        : _buildSmallScreenLayout(),
+                    ? _buildMediumScreenLayout()
+                    : _buildSmallScreenLayout(),
               ),
             ),
           ),
@@ -648,7 +775,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ),
     );
   }
-  
+
   Widget _buildHomeTab() {
     return RefreshIndicator(
       onRefresh: () async {
@@ -675,7 +802,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ),
     );
   }
-  
+
   Widget _buildWebAppBar() {
     return SliverAppBar(
       expandedHeight: 120,
@@ -709,16 +836,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     width: 1,
                   ),
                 ),
-                child: Icon(
-                  Icons.pets,
-                  size: 32,
-                  color: AppTheme.primaryColor,
-                ),
+                child: Icon(Icons.pets, size: 32, color: AppTheme.primaryColor),
               ),
               const SizedBox(width: 20),
               // Información del dashboard - CORREGIDO
-              Expanded( // Cambio de Flexible a Expanded
-                child: LayoutBuilder( // Agregar LayoutBuilder para manejar constraints
+              Expanded(
+                // Cambio de Flexible a Expanded
+                child: LayoutBuilder(
+                  // Agregar LayoutBuilder para manejar constraints
                   builder: (context, constraints) {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -728,7 +853,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         // Título con overflow controlado
                         ConstrainedBox(
                           constraints: BoxConstraints(
-                            maxHeight: constraints.maxHeight * 0.6, // Máximo 60% del espacio
+                            maxHeight:
+                                constraints.maxHeight *
+                                0.6, // Máximo 60% del espacio
                           ),
                           child: FittedBox(
                             fit: BoxFit.scaleDown,
@@ -749,14 +876,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         // Subtítulo con overflow controlado
                         ConstrainedBox(
                           constraints: BoxConstraints(
-                            maxHeight: constraints.maxHeight * 0.3, // Máximo 30% del espacio
+                            maxHeight:
+                                constraints.maxHeight *
+                                0.3, // Máximo 30% del espacio
                           ),
                           child: Text(
                             AppLocalizations.of(context)!.appDescription,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w400,
-                              color: AppTheme.getColors(context).onSurface.withValues(alpha: 0.7),
+                              color: AppTheme.getColors(
+                                context,
+                              ).onSurface.withValues(alpha: 0.7),
                               height: 1.3,
                             ),
                             overflow: TextOverflow.ellipsis, // Agregar ellipsis
@@ -811,27 +942,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ),
     );
   }
-  
+
   Widget _buildLargeScreenLayout() {
     return Column(
       children: [
         // Sección de estado principal - ancho completo
         _buildStatusSection(),
         const SizedBox(height: 32),
-        
+
         // Estadísticas rápidas - ancho completo
         _buildQuickStats(),
         const SizedBox(height: 32),
-        
+
         // Layout de dos columnas para el resto del contenido
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Columna principal (2/3) - Actividades recientes
-            Expanded(
-              flex: 2,
-              child: _buildRecentActivities(),
-            ),
+            Expanded(flex: 2, child: _buildRecentActivities()),
             const SizedBox(width: 32),
             // Columna lateral (1/3) - Acciones e insights
             Expanded(
@@ -849,37 +977,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ],
     );
   }
-  
+
   Widget _buildMediumScreenLayout() {
     return Column(
       children: [
         // Sección de estado - ancho completo
         _buildStatusSection(),
         const SizedBox(height: 24),
-        
+
         // Estadísticas rápidas
         _buildQuickStats(),
         const SizedBox(height: 24),
-        
+
         // Layout de dos columnas para actividades y acciones
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              flex: 2,
-              child: _buildRecentActivities(),
-            ),
+            Expanded(flex: 2, child: _buildRecentActivities()),
             const SizedBox(width: 20),
-            Expanded(
-              flex: 1,
-              child: _buildQuickActions(),
-            ),
+            Expanded(flex: 1, child: _buildQuickActions()),
           ],
         ),
       ],
     );
   }
-  
+
   Widget _buildSmallScreenLayout() {
     return Column(
       children: [
@@ -893,7 +1015,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ],
     );
   }
-  
+
   Widget _buildWebInsights() {
     return Card(
       child: Padding(
@@ -903,11 +1025,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.insights,
-                  color: AppTheme.primaryColor,
-                  size: 20,
-                ),
+                Icon(Icons.insights, color: AppTheme.primaryColor, size: 20),
                 const SizedBox(width: 8),
                 Text(
                   'Insights',
@@ -924,7 +1042,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               builder: (context, ref, child) {
                 final statusAsync = ref.watch(pepitoStatusProvider);
                 final todayActivitiesAsync = ref.watch(todayActivitiesProvider);
-                
+
                 return Column(
                   children: [
                     _buildInsightItem(
@@ -933,7 +1051,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       value: statusAsync.when(
                         data: (status) => _formatLastActivity(status.lastSeen),
                         loading: () => AppLocalizations.of(context)!.loading,
-                        error: (error, stackTrace) => AppLocalizations.of(context)!.error,
+                        error: (error, stackTrace) =>
+                            AppLocalizations.of(context)!.error,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -951,9 +1070,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       icon: Icons.trending_up,
                       title: AppLocalizations.of(context)!.status,
                       value: statusAsync.when(
-                        data: (status) => status.isHome ? AppLocalizations.of(context)!.atHome : AppLocalizations.of(context)!.awayFromHome,
+                        data: (status) => status.isHome
+                            ? AppLocalizations.of(context)!.atHome
+                            : AppLocalizations.of(context)!.awayFromHome,
                         loading: () => '...',
-                        error: (error, stackTrace) => AppLocalizations.of(context)!.error,
+                        error: (error, stackTrace) =>
+                            AppLocalizations.of(context)!.error,
                       ),
                     ),
                   ],
@@ -965,7 +1087,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ),
     );
   }
-  
+
   Widget _buildInsightItem({
     required IconData icon,
     required String title,
@@ -979,11 +1101,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             color: AppTheme.primaryColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(
-            icon,
-            size: 16,
-            color: AppTheme.primaryColor,
-          ),
+          child: Icon(icon, size: 16, color: AppTheme.primaryColor),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -994,7 +1112,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 title,
                 style: TextStyle(
                   fontSize: 12,
-                  color: AppTheme.getColors(context).onSurface.withValues(alpha: 0.7),
+                  color: AppTheme.getColors(
+                    context,
+                  ).onSurface.withValues(alpha: 0.7),
                 ),
               ),
               Text(
@@ -1011,12 +1131,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ],
     );
   }
-  
+
   String _formatLastActivity(DateTime? lastActivity) {
     if (lastActivity == null) return AppLocalizations.of(context)!.noActivity;
     final now = DateTime.now();
     final difference = now.difference(lastActivity);
-    
+
     if (difference.inMinutes < 1) {
       return AppLocalizations.of(context)!.justNow;
     } else if (difference.inHours < 1) {
@@ -1027,7 +1147,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       return AppLocalizations.of(context)!.daysAgo(difference.inDays);
     }
   }
-  
+
   Widget _buildAppBar() {
     return SliverAppBar(
       expandedHeight: 120,
@@ -1037,10 +1157,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       flexibleSpace: FlexibleSpaceBar(
         title: const Text(
           'Pépito App',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         background: Container(
           decoration: BoxDecoration(
@@ -1054,11 +1171,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ),
           ),
           child: const Center(
-            child: Icon(
-              Icons.pets,
-              size: 48,
-              color: Colors.white,
-            ),
+            child: Icon(Icons.pets, size: 48, color: Colors.white),
           ),
         ),
       ),
@@ -1079,10 +1192,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
-                  : const Icon(
-                      Icons.refresh,
-                      color: Colors.white,
-                    ),
+                  : const Icon(Icons.refresh, color: Colors.white),
             );
           },
         ),
@@ -1095,13 +1205,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       builder: (context, ref, child) {
         final statusAsync = ref.watch(pepitoStatusProvider);
         final error = ref.watch(errorProvider);
-        
+
         if (error != null) {
           return _buildErrorCard(error);
         }
-        
+
         return statusAsync.when(
-          data: (status) => StatusCard(
+          data: (status) => AdaptiveStatusCard(
             status: status,
             onRefresh: () => _refreshController.refreshStatus(),
             isLoading: ref.watch(loadingProvider),
@@ -1116,14 +1226,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   Widget _buildQuickStats() {
     return Consumer(
       builder: (context, ref, child) {
-        final todayActivitiesAsync = ref.watch(todayActivitiesProvider);
-        final statusAsync = ref.watch(pepitoStatusProvider);
-        
-        return todayActivitiesAsync.when(
-          data: (activities) => QuickStatsRow(
-            todayActivities: activities,
-            status: statusAsync.value,
-          ),
+        final allActivitiesAsync = ref.watch(allActivitiesProvider);
+
+        return allActivitiesAsync.when(
+          data: (activities) => _buildQuickStatsRow(activities),
           loading: () => _buildLoadingStatsRow(),
           error: (error, stack) => const SizedBox.shrink(),
         );
@@ -1139,20 +1245,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         padding: const EdgeInsets.all(20),
         child: Consumer(
           builder: (context, ref, child) {
-            final activitiesAsync = ref.watch(activitiesProvider(
-              const ActivitiesParams(limit: 5, offset: 0),
-            ));
-            
+            final activitiesAsync = ref.watch(
+              activitiesProvider(const ActivitiesParams(limit: 5, offset: 0)),
+            );
+
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    Icon(
-                      Icons.history,
-                      color: AppTheme.primaryColor,
-                      size: 24,
-                    ),
+                    Icon(Icons.history, color: AppTheme.primaryColor, size: 24),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
@@ -1172,10 +1274,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         if (activities.isNotEmpty) {
                           final now = DateTime.now();
                           final hasRecentActivity = activities.any((activity) {
-                            final difference = now.difference(activity.dateTime);
+                            final difference = now.difference(
+                              activity.dateTime,
+                            );
                             return difference.inMinutes < 10;
                           });
-                          
+
                           if (hasRecentActivity) {
                             return HeartBeatWidget(
                               size: 20,
@@ -1207,20 +1311,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     }
                     return Column(
                       children: activities
-                          .map((activity) => Padding(
-                                padding: const EdgeInsets.only(bottom: 8),
-                                child: ActivityCard(
-                                  activity: activity,
-                                  compact: true,
-                                  showDate: false,
-                                  onTap: () => _showActivityDetails(activity),
-                                ),
-                              ))
+                          .map(
+                            (activity) => Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: AdaptiveActivityCard(
+                                activity: activity,
+                                compact: true,
+                                showDate: false,
+                                onTap: () => _showActivityDetails(activity),
+                              ),
+                            ),
+                          )
                           .toList(),
                     );
                   },
                   loading: () => _buildLoadingActivities(),
-                  error: (error, stack) => _buildErrorActivities(error.toString()),
+                  error: (error, stack) =>
+                      _buildErrorActivities(error.toString()),
                 ),
               ],
             );
@@ -1241,11 +1348,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.flash_on,
-                  color: AppTheme.primaryColor,
-                  size: 24,
-                ),
+                Icon(Icons.flash_on, color: AppTheme.primaryColor, size: 24),
                 const SizedBox(width: 8),
                 Text(
                   'Acciones rápidas',
@@ -1313,10 +1416,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withValues(alpha: 0.2),
-          width: 1,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -1341,11 +1441,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
-                    icon,
-                    color: color,
-                    size: 24,
-                  ),
+                  child: Icon(icon, color: color, size: 24),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -1365,7 +1461,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         subtitle,
                         style: TextStyle(
                           fontSize: 13,
-                          color: AppTheme.getColors(context).onSurface.withValues(alpha: 0.7),
+                          color: AppTheme.getColors(
+                            context,
+                          ).onSurface.withValues(alpha: 0.7),
                         ),
                       ),
                     ],
@@ -1384,6 +1482,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
+  // ignore: unused_element
   Widget _buildBottomNavigationBar(AppColors colors) {
     return Container(
       decoration: BoxDecoration(
@@ -1422,6 +1521,566 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
+  Widget _buildMaterial3ExpressiveBottomNavigationBar(AppColors colors) {
+    return NavigationBar(
+      selectedIndex: _tabController.index,
+      onDestinationSelected: (index) => _tabController.animateTo(index),
+      destinations: [
+        NavigationDestination(
+          icon: const Icon(Icons.home),
+          label: AppLocalizations.of(context)!.home,
+        ),
+        NavigationDestination(
+          icon: const Icon(Icons.list),
+          label: AppLocalizations.of(context)!.activitiesTab,
+        ),
+        NavigationDestination(
+          icon: const Icon(Icons.analytics),
+          label: AppLocalizations.of(context)!.statistics,
+        ),
+        NavigationDestination(
+          icon: const Icon(Icons.settings),
+          label: AppLocalizations.of(context)!.settings,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMaterial3ExpressiveHomeTab() {
+    return RefreshIndicator(
+      onRefresh: () async {
+        await _refreshController.refreshAll();
+      },
+      child: CustomScrollView(
+        slivers: [
+          _buildMaterial3ExpressiveAppBar(),
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                _buildMaterial3ExpressiveStatusSection(),
+                const SizedBox(height: 16),
+                _buildMaterial3ExpressiveQuickStats(),
+                const SizedBox(height: 16),
+                _buildMaterial3ExpressiveRecentActivities(),
+                const SizedBox(height: 16),
+                _buildMaterial3ExpressiveQuickActions(),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLiquidGlassHomeTab() {
+    return RefreshIndicator(
+      onRefresh: () async {
+        await _refreshController.refreshAll();
+      },
+      child: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          LiquidAppBar(title: 'Pepito Updates'),
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                _buildLiquidGlassStatusSection(),
+                const SizedBox(height: 16),
+                _buildLiquidGlassQuickStats(),
+                const SizedBox(height: 16),
+                _buildLiquidGlassRecentActivities(),
+                const SizedBox(height: 16),
+                _buildLiquidGlassQuickActions(),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+          // Espacio extra para el navbar
+          const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLiquidGlassBottomNavigationBar(AppColors colors) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      height: _isNavbarCollapsed ? 70 : 90,
+      child: _isNavbarCollapsed
+          ? Center(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(30),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+                  child: Container(
+                    width: 260,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 20,
+                    ),
+                    decoration: BoxDecoration(
+                      color: (isDark ? Colors.black : Colors.white).withValues(
+                        alpha: 0.2,
+                      ),
+                      borderRadius: BorderRadius.circular(30),
+                      border: Border.all(
+                        color: (isDark ? Colors.white : Colors.black)
+                            .withValues(alpha: 0.1),
+                        width: 0.5,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildCollapsedNavItem(
+                          icon: CupertinoIcons.home,
+                          index: 0,
+                          isSelected: _tabController.index == 0,
+                          isDark: isDark,
+                        ),
+                        _buildCollapsedNavItem(
+                          icon: CupertinoIcons.list_bullet,
+                          index: 1,
+                          isSelected: _tabController.index == 1,
+                          isDark: isDark,
+                        ),
+                        _buildCollapsedNavItem(
+                          icon: CupertinoIcons.chart_bar,
+                          index: 2,
+                          isSelected: _tabController.index == 2,
+                          isDark: isDark,
+                        ),
+                        _buildCollapsedNavItem(
+                          icon: CupertinoIcons.settings,
+                          index: 3,
+                          isSelected: _tabController.index == 3,
+                          isDark: isDark,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : ClipRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+                child: Container(
+                  color: (isDark ? Colors.black : Colors.white).withValues(
+                    alpha: 0.2,
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Expanded(
+                        child: _buildNavItem(
+                          icon: CupertinoIcons.home,
+                          label: AppLocalizations.of(context)!.home,
+                          index: 0,
+                          isSelected: _tabController.index == 0,
+                          isDark: isDark,
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildNavItem(
+                          icon: CupertinoIcons.list_bullet,
+                          label: AppLocalizations.of(context)!.activitiesTab,
+                          index: 1,
+                          isSelected: _tabController.index == 1,
+                          isDark: isDark,
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildNavItem(
+                          icon: CupertinoIcons.chart_bar,
+                          label: AppLocalizations.of(context)!.statistics,
+                          index: 2,
+                          isSelected: _tabController.index == 2,
+                          isDark: isDark,
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildNavItem(
+                          icon: CupertinoIcons.settings,
+                          label: AppLocalizations.of(context)!.settings,
+                          index: 3,
+                          isSelected: _tabController.index == 3,
+                          isDark: isDark,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required IconData icon,
+    required String label,
+    required int index,
+    required bool isSelected,
+    required bool isDark,
+  }) {
+    final inactiveColor = isDark
+        ? CupertinoColors.systemGrey
+        : CupertinoColors.systemGrey2;
+
+    // Colores vibrantes para el efecto burbuja tipo Apple Music/News
+    final bubbleColor = isSelected
+        ? AppleColors
+              .infoBlue // Color base vibrante
+        : AppleColors.getActivityColor(ActivityType.entrada);
+
+    return GestureDetector(
+      onTap: () => _tabController.animateTo(index),
+      child: Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none, // Permitir que la sombra salga del stack
+        children: [
+          // Fondo de burbuja líquida animada (Glow intenso)
+          if (isSelected && _bubbleAnimation != null)
+            AnimatedBuilder(
+              animation: _bubbleAnimation!,
+              builder: (context, child) {
+                final animationValue = _bubbleAnimation!.value;
+                // Escala para efecto de rebote suave
+                final scale = 1.0 + (animationValue * 0.15);
+
+                return Transform.scale(
+                  scale: scale,
+                  child: Container(
+                    width: 56, // Tamaño base de la burbuja
+                    height: 56,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle, // Círculo perfecto
+                      gradient: LinearGradient(
+                        // Gradiente lineal para más profundidad
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          bubbleColor.withOpacity(0.9),
+                          bubbleColor.withOpacity(0.6),
+                        ],
+                      ),
+                      boxShadow: [
+                        // Sombra de brillo intenso (Glow)
+                        BoxShadow(
+                          color: bubbleColor.withOpacity(0.6),
+                          blurRadius:
+                              25, // Mucho blur para el efecto de luz difusa
+                          spreadRadius: 5,
+                          offset: const Offset(0, 4),
+                        ),
+                        // Sombra interna para efecto 3D
+                        BoxShadow(
+                          color: Colors.white.withOpacity(0.4),
+                          blurRadius: 15,
+                          spreadRadius: -5,
+                          offset: const Offset(-5, -5),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+
+          // Contenido del item
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: Colors.transparent,
+            ),
+            constraints: const BoxConstraints(minHeight: 40, maxHeight: 48),
+            child: Icon(
+              icon,
+              color: isSelected ? Colors.white : inactiveColor,
+              size: 22,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCollapsedNavItem({
+    required IconData icon,
+    required int index,
+    required bool isSelected,
+    required bool isDark,
+  }) {
+    final inactiveColor = isDark
+        ? CupertinoColors.systemGrey
+        : CupertinoColors.systemGrey2;
+
+    final bubbleColor = isSelected
+        ? AppleColors
+              .infoBlue // Color base vibrante
+        : AppleColors.getActivityColor(ActivityType.entrada);
+
+    return GestureDetector(
+      onTap: () => _tabController.animateTo(index),
+      child: Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none, // Permitir que la sombra salga del stack
+        children: [
+          // Burbuja circular con efecto de glow (modo contraído)
+          if (isSelected && _bubbleAnimation != null)
+            AnimatedBuilder(
+              animation: _bubbleAnimation!,
+              builder: (context, child) {
+                final animationValue = _bubbleAnimation!.value;
+                final scale = 1.0 + (animationValue * 0.15);
+                return Transform.scale(
+                  scale: scale,
+                  child: Container(
+                    width: 56, // Tamaño base de la burbuja
+                    height: 56,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle, // Círculo perfecto
+                      gradient: LinearGradient(
+                        // Gradiente lineal para más profundidad
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          bubbleColor.withOpacity(0.9),
+                          bubbleColor.withOpacity(0.6),
+                        ],
+                      ),
+                      boxShadow: [
+                        // Sombra de brillo intenso (Glow)
+                        BoxShadow(
+                          color: bubbleColor.withOpacity(0.6),
+                          blurRadius:
+                              25, // Mucho blur para el efecto de luz difusa
+                          spreadRadius: 5,
+                          offset: const Offset(0, 4),
+                        ),
+                        // Sombra interna para efecto 3D
+                        BoxShadow(
+                          color: Colors.white.withOpacity(0.4),
+                          blurRadius: 15,
+                          spreadRadius: -5,
+                          offset: const Offset(-5, -5),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+
+          // Icono
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(25),
+              color: Colors.transparent,
+            ),
+            child: Icon(
+              icon,
+              color: isSelected ? Colors.white : inactiveColor,
+              size: 26,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLiquidGlassStatusSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: _buildStatusSection(),
+    );
+  }
+
+  Widget _buildLiquidGlassQuickStats() {
+    return _buildQuickStats(); // Mantener igual por ahora
+  }
+
+  Widget _buildLiquidGlassRecentActivities() {
+    return _buildRecentActivities(); // Mantener igual por ahora
+  }
+
+  Widget _buildLiquidGlassQuickActions() {
+    return GlassCard(
+      accentColor: AppleColors.getActivityColor(ActivityType.entrada),
+      padding: const EdgeInsets.all(20),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: double.infinity),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppleColors.getActivityColor(
+                      ActivityType.entrada,
+                    ).withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppleColors.getActivityColor(
+                        ActivityType.entrada,
+                      ).withValues(alpha: 0.3),
+                      width: 1,
+                    ),
+                    boxShadow: GlassEffects.glassShadows(
+                      accentColor: AppleColors.getActivityColor(
+                        ActivityType.entrada,
+                      ),
+                      intensity: 0.3,
+                    ),
+                  ),
+                  child: Icon(
+                    CupertinoIcons.bolt_fill,
+                    color: AppleColors.getActivityColor(ActivityType.entrada),
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Acciones rápidas',
+                  style: CupertinoTheme.of(context).textTheme.navTitleTextStyle
+                      .copyWith(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppleColors.textPrimary(context),
+                      ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildLiquidGlassActionCard(
+                  icon: CupertinoIcons.chart_bar,
+                  title: AppLocalizations.of(context)!.statistics,
+                  subtitle: AppLocalizations.of(context)!.viewDetailedAnalysis,
+                  color: AppleColors.infoBlue,
+                  onTap: () => _navigateToStatistics(),
+                ),
+                const SizedBox(height: 12),
+                _buildLiquidGlassActionCard(
+                  icon: CupertinoIcons.bell,
+                  title: AppLocalizations.of(context)!.notifications,
+                  subtitle: AppLocalizations.of(context)!.configureAlerts,
+                  color: AppleColors.warningOrange,
+                  onTap: () => _navigateToNotifications(),
+                ),
+                const SizedBox(height: 12),
+                _buildLiquidGlassActionCard(
+                  icon: CupertinoIcons.refresh,
+                  title: 'Actualizar datos',
+                  subtitle: 'Sincronizar información',
+                  color: AppleColors.successGreen,
+                  onTap: () => _refreshController.refreshAll(),
+                ),
+                const SizedBox(height: 12),
+                // Función de limpieza removida por seguridad
+                // Solo disponible en modo debug
+                if (kDebugMode)
+                  _buildLiquidGlassActionCard(
+                    icon: CupertinoIcons.trash,
+                    title: '🧹 [DEBUG] Limpiar Duplicados',
+                    subtitle: 'Solo disponible en desarrollo',
+                    color: AppleColors.warningOrange,
+                    onTap: _clearSupabaseData,
+                  ),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLiquidGlassActionCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: FrostedPanel(
+        padding: const EdgeInsets.all(16),
+        borderRadius: BorderRadius.circular(12),
+        backgroundColor: color.withValues(alpha: 0.1),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: color.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+                boxShadow: GlassEffects.glassShadows(
+                  accentColor: color,
+                  intensity: 0.2,
+                ),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: CupertinoTheme.of(context).textTheme.textStyle
+                        .copyWith(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppleColors.textPrimary(context),
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: CupertinoTheme.of(context)
+                        .textTheme
+                        .tabLabelTextStyle
+                        .copyWith(
+                          fontSize: 13,
+                          color: AppleColors.textSecondary(context),
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              CupertinoIcons.chevron_right,
+              color: color.withValues(alpha: 0.6),
+              size: 16,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // Loading widgets
   Widget _buildLoadingStatusCard() {
     return Card(
@@ -1429,9 +2088,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       child: Container(
         height: 200,
         padding: const EdgeInsets.all(20),
-        child: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        child: const Center(child: CircularProgressIndicator()),
       ),
     );
   }
@@ -1447,13 +2104,50 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               child: Container(
                 height: 100,
                 padding: const EdgeInsets.all(16),
-                child: const Center(
-                  child: CircularProgressIndicator(),
-                ),
+                child: const Center(child: CircularProgressIndicator()),
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildQuickStatsRow(List<PepitoActivity> activities) {
+    final entryCount = activities.where((a) => a.type == 'in').length;
+    final exitCount = activities.where((a) => a.type == 'out').length;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: LiquidStatisticsCard(
+              title: 'Entradas',
+              value: entryCount.toString(),
+              icon: CupertinoIcons.arrow_down_circle_fill,
+              color: AppleColors.successGreen,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: LiquidStatisticsCard(
+              title: 'Salidas',
+              value: exitCount.toString(),
+              icon: CupertinoIcons.arrow_up_circle_fill,
+              color: AppleColors.warningOrange,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: LiquidStatisticsCard(
+              title: 'Total',
+              value: activities.length.toString(),
+              icon: CupertinoIcons.chart_pie_fill,
+              color: AppleColors.infoBlue,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1467,9 +2161,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           child: Container(
             height: 80,
             padding: const EdgeInsets.all(16),
-            child: const Center(
-              child: CircularProgressIndicator(),
-            ),
+            child: const Center(child: CircularProgressIndicator()),
           ),
         ),
       ),
@@ -1484,11 +2176,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 48,
-              color: AppTheme.errorColor,
-            ),
+            Icon(Icons.error_outline, size: 48, color: AppTheme.errorColor),
             const SizedBox(height: 16),
             Text(
               'Error al cargar datos',
@@ -1503,7 +2191,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               error,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: AppTheme.getColors(context).onSurface.withValues(alpha: 0.7),
+                color: AppTheme.getColors(
+                  context,
+                ).onSurface.withValues(alpha: 0.7),
               ),
             ),
             const SizedBox(height: 16),
@@ -1524,10 +2214,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Icon(
-              Icons.error_outline,
-              color: AppTheme.errorColor,
-            ),
+            Icon(Icons.error_outline, color: AppTheme.errorColor),
             const SizedBox(height: 8),
             Text(
               'Error al cargar actividades',
@@ -1541,7 +2228,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               error,
               style: TextStyle(
                 fontSize: 12,
-                color: AppTheme.getColors(context).onSurface.withValues(alpha: 0.7),
+                color: AppTheme.getColors(
+                  context,
+                ).onSurface.withValues(alpha: 0.7),
               ),
             ),
           ],
@@ -1586,7 +2275,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
-                color: AppTheme.getColors(context).onSurface.withValues(alpha: 0.7),
+                color: AppTheme.getColors(
+                  context,
+                ).onSurface.withValues(alpha: 0.7),
               ),
             ),
             const SizedBox(height: 8),
@@ -1594,7 +2285,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               AppLocalizations.of(context)!.pepitoActivitiesWillAppearHere,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: AppTheme.getColors(context).onSurface.withValues(alpha: 0.5),
+                color: AppTheme.getColors(
+                  context,
+                ).onSurface.withValues(alpha: 0.5),
               ),
             ),
           ],
@@ -1612,9 +2305,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         height: MediaQuery.of(context).size.height * 0.7,
         decoration: BoxDecoration(
           color: AppTheme.getColors(context).surface,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(20),
-          ),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -1626,7 +2317,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppTheme.getColors(context).onSurface.withValues(alpha: 0.3),
+                    color: AppTheme.getColors(
+                      context,
+                    ).onSurface.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -1642,10 +2335,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ),
               const SizedBox(height: 16),
               Expanded(
-                child: ActivityCard(
-                  activity: activity,
-                  showDate: true,
-                ),
+                child: AdaptiveActivityCard(activity: activity, showDate: true),
               ),
             ],
           ),
@@ -1659,8 +2349,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final authorized = await AuthorizationService().requestAuthorization(
       context,
       operation: 'Limpiar Duplicados',
-      description: 'Esta operación eliminará las actividades duplicadas de Supabase. '
-                  'Se preservará la actividad más reciente de la API.',
+      description:
+          'Esta operación eliminará las actividades duplicadas de Supabase. '
+          'Se preservará la actividad más reciente de la API.',
     );
 
     if (!authorized) return;
@@ -1671,45 +2362,45 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         context: context,
         barrierDismissible: false,
         builder: (context) => const AlertDialog(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Limpiando Supabase...'),
-          ],
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Limpiando Supabase...'),
+            ],
+          ),
         ),
-      ),
-    );
+      );
     }
 
     try {
       // Ejecutar limpieza
       final success = await SupabaseCleanup.clearAllActivities();
-      
+
       // Cerrar diálogo de progreso
       if (mounted) Navigator.of(context).pop();
-      
+
       // Mostrar resultado
-       if (mounted) {
-         showDialog(
-           context: context,
-           builder: (context) => AlertDialog(
-             title: Text(success ? 'Éxito' : 'Error'),
-             content: Text(
-               success 
-                 ? 'Supabase limpiado exitosamente. Las actividades duplicadas han sido eliminadas.'
-                : 'Error durante la limpieza de Supabase.',
-             ),
-             actions: [
-               TextButton(
-                 onPressed: () => Navigator.of(context).pop(),
-                 child: const Text('OK'),
-               ),
-             ],
-           ),
-         );
-        
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(success ? 'Éxito' : 'Error'),
+            content: Text(
+              success
+                  ? 'Supabase limpiado exitosamente. Las actividades duplicadas han sido eliminadas.'
+                  : 'Error durante la limpieza de Supabase.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+
         // Refrescar datos si fue exitoso
         if (success) {
           _refreshController.refreshAll();
@@ -1718,7 +2409,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     } catch (e) {
       // Cerrar diálogo de progreso
       if (mounted) Navigator.of(context).pop();
-      
+
       // Mostrar error
       if (mounted) {
         showDialog(
@@ -1744,7 +2435,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('📊 Estadísticas'),
-        content: const Text('Navegando a la pestaña de estadísticas donde puedes ver análisis detallados de la actividad de Pépito.'),
+        content: const Text(
+          'Navegando a la pestaña de estadísticas donde puedes ver análisis detallados de la actividad de Pépito.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -1761,7 +2454,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('🔔 Configuración'),
-        content: const Text('Navegando a la configuración donde puedes ajustar las notificaciones y otros ajustes de la aplicación.'),
+        content: const Text(
+          'Navegando a la configuración donde puedes ajustar las notificaciones y otros ajustes de la aplicación.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -1769,6 +2464,324 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
         ],
       ),
+    );
+  }
+
+  // Material 3 Expressive UI Methods
+  Widget _buildMaterial3ExpressiveAppBar() {
+    return SliverAppBar(
+      expandedHeight: 120,
+      floating: true,
+      pinned: false,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      flexibleSpace: FlexibleSpaceBar(
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.02),
+              ],
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
+                ),
+                child: Icon(
+                  Icons.pets,
+                  size: 32,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Pépito Updates',
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                    Text(
+                      AppLocalizations.of(context)!.appDescription,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMaterial3ExpressiveStatusSection() {
+    return Consumer(
+      builder: (context, ref, child) {
+        final statusAsync = ref.watch(pepitoStatusProvider);
+        final error = ref.watch(errorProvider);
+
+        if (error != null) {
+          return _buildErrorCard(error);
+        }
+
+        return statusAsync.when(
+          data: (status) => m3_status.StatusCard(
+            status: status,
+            onRefresh: () => _refreshController.refreshStatus(),
+            isLoading: ref.watch(loadingProvider),
+          ),
+          loading: () => _buildLoadingStatusCard(),
+          error: (error, stack) => _buildErrorCard(error.toString()),
+        );
+      },
+    );
+  }
+
+  Widget _buildMaterial3ExpressiveQuickStats() {
+    return Consumer(
+      builder: (context, ref, child) {
+        final allActivitiesAsync = ref.watch(allActivitiesProvider);
+
+        return allActivitiesAsync.when(
+          data: (activities) =>
+              _buildMaterial3ExpressiveQuickStatsRow(activities),
+          loading: () => const CircularProgressIndicator(),
+          error: (error, stack) => Text('Error: $error'),
+        );
+      },
+    );
+  }
+
+  Widget _buildMaterial3ExpressiveQuickStatsRow(
+    List<PepitoActivity> activities,
+  ) {
+    final entryCount = activities.where((a) => a.type == 'in').length;
+    final exitCount = activities.where((a) => a.type == 'out').length;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: m3_stats.StatisticsCard(
+              title: 'Entradas',
+              value: entryCount.toString(),
+              icon: Icons.arrow_downward,
+              color: Colors.green,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: m3_stats.StatisticsCard(
+              title: 'Salidas',
+              value: exitCount.toString(),
+              icon: Icons.arrow_upward,
+              color: Colors.orange,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: m3_stats.StatisticsCard(
+              title: 'Total',
+              value: activities.length.toString(),
+              icon: Icons.pie_chart,
+              color: Colors.blue,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMaterial3ExpressiveRecentActivities() {
+    return Consumer(
+      builder: (context, ref, child) {
+        final todayActivitiesAsync = ref.watch(todayActivitiesProvider);
+
+        return todayActivitiesAsync.when(
+          data: (activities) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  AppLocalizations.of(context)!.recentActivities,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                ),
+              ),
+              const SizedBox(height: 8),
+              ...activities
+                  .take(5)
+                  .map(
+                    (activity) => Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 4,
+                      ),
+                      child: m3_activity.ActivityCard(
+                        activity: activity,
+                        compact: true,
+                      ),
+                    ),
+                  ),
+            ],
+          ),
+          loading: () => const CircularProgressIndicator(),
+          error: (error, stack) => Text('Error: $error'),
+        );
+      },
+    );
+  }
+
+  Widget _buildMaterial3ExpressiveQuickActions() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            'Acciones rápidas',
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildQuickActionButton(
+              icon: Icons.refresh,
+              label: 'Actualizar',
+              onTap: () => _refreshController.refreshAll(),
+            ),
+            _buildQuickActionButton(
+              icon: Icons.list,
+              label: AppLocalizations.of(context)!.activitiesTab,
+              onTap: () => _tabController.animateTo(1),
+            ),
+            _buildQuickActionButton(
+              icon: Icons.analytics,
+              label: AppLocalizations.of(context)!.statistics,
+              onTap: () => _tabController.animateTo(2),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuickActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Column(
+      children: [
+        FilledButton.tonal(
+          onPressed: onTap,
+          style: FilledButton.styleFrom(
+            shape: const CircleBorder(),
+            padding: const EdgeInsets.all(16),
+          ),
+          child: Icon(icon),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall,
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  // Widget para transiciones con efecto de burbuja líquida
+  Widget _buildLiquidTransitionBuilder(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    final bubbleColor = AppleColors.getActivityColor(ActivityType.entrada);
+
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        return Stack(
+          children: [
+            // Efecto de burbuja de fondo
+            if (animation.value > 0)
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      center: Alignment.center,
+                      radius: animation.value * 1.5,
+                      colors: [
+                        bubbleColor.withOpacity(animation.value * 0.3),
+                        bubbleColor.withOpacity(animation.value * 0.1),
+                        Colors.transparent,
+                      ],
+                      stops: const [0.0, 0.3, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+
+            // Contenido con efecto de desvanecimiento
+            Opacity(
+              opacity: 1.0 - animation.value,
+              child: Transform.scale(
+                scale: 1.0 - (animation.value * 0.1),
+                child: child,
+              ),
+            ),
+
+            // Nueva pantalla con efecto de aparición
+            Opacity(
+              opacity: animation.value,
+              child: Transform.scale(
+                scale: 0.9 + (animation.value * 0.1),
+                child: secondaryAnimation.isCompleted
+                    ? child
+                    : const SizedBox(),
+              ),
+            ),
+          ],
+        );
+      },
+      child: child,
     );
   }
 }

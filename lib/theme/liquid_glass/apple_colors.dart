@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import '../../models/pepito_activity.dart';
 
 class AppleColors {
@@ -41,14 +42,14 @@ class AppleColors {
 
   // Colores de background según modo
   static Color backgroundPrimary(BuildContext context) {
-    final brightness = CupertinoTheme.of(context).brightness ?? Brightness.light;
+    final brightness = Theme.of(context).brightness;
     return brightness == Brightness.dark
         ? CupertinoColors.black
         : CupertinoColors.white;
   }
 
   static Color backgroundSecondary(BuildContext context) {
-    final brightness = CupertinoTheme.of(context).brightness ?? Brightness.light;
+    final brightness = Theme.of(context).brightness;
     return brightness == Brightness.dark
         ? CupertinoColors.systemGrey6.darkColor
         : CupertinoColors.systemGrey6.color;
@@ -56,14 +57,14 @@ class AppleColors {
 
   // Colores de texto adaptativos
   static Color textPrimary(BuildContext context) {
-    final brightness = CupertinoTheme.of(context).brightness ?? Brightness.light;
+    final brightness = Theme.of(context).brightness;
     return brightness == Brightness.dark
         ? CupertinoColors.white
         : CupertinoColors.black;
   }
 
   static Color textSecondary(BuildContext context) {
-    final brightness = CupertinoTheme.of(context).brightness ?? Brightness.light;
+    final brightness = Theme.of(context).brightness;
     return brightness == Brightness.dark
         ? CupertinoColors.systemGrey
         : CupertinoColors.systemGrey2.darkColor;
@@ -75,9 +76,9 @@ class AppleColors {
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
       colors: [
-        successGreen.withOpacity(0.8),
-        successGreen.withOpacity(0.6),
-        successGreen.withOpacity(0.4),
+        successGreen.withValues(alpha: 0.8),
+        successGreen.withValues(alpha: 0.6),
+        successGreen.withValues(alpha: 0.4),
       ],
     );
   }
@@ -87,9 +88,9 @@ class AppleColors {
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
       colors: [
-        warningOrange.withOpacity(0.8),
-        warningOrange.withOpacity(0.6),
-        warningOrange.withOpacity(0.4),
+        warningOrange.withValues(alpha: 0.8),
+        warningOrange.withValues(alpha: 0.6),
+        warningOrange.withValues(alpha: 0.4),
       ],
     );
   }
@@ -99,9 +100,9 @@ class AppleColors {
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
       colors: [
-        errorRed.withOpacity(0.8),
-        errorRed.withOpacity(0.6),
-        errorRed.withOpacity(0.4),
+        errorRed.withValues(alpha: 0.8),
+        errorRed.withValues(alpha: 0.6),
+        errorRed.withValues(alpha: 0.4),
       ],
     );
   }
@@ -121,7 +122,7 @@ class AppleColors {
 
   // Colores para diferentes niveles de intensidad
   static Color withIntensity(Color color, double intensity) {
-    return color.withOpacity(intensity.clamp(0.0, 1.0));
+    return color.withValues(alpha: intensity.clamp(0.0, 1.0));
   }
 
   // Método para obtener colores complementarios

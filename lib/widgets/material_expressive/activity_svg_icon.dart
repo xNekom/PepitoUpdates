@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../models/pepito_activity.dart';
-import '../utils/theme_utils.dart';
+import '../../models/pepito_activity.dart';
+import '../../utils/theme_utils.dart';
 
 class ActivitySvgIcon extends StatelessWidget {
   final PepitoActivity activity;

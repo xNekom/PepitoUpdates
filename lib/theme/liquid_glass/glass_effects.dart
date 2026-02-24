@@ -33,13 +33,13 @@ class GlassEffects {
   }) {
     return [
       BoxShadow(
-        color: accentColor.withOpacity(shadowOpacity * intensity),
+        color: accentColor.withValues(alpha: shadowOpacity * intensity),
         blurRadius: 20.0 * intensity,
         spreadRadius: 2.0 * intensity,
         offset: Offset(0, 4 * intensity),
       ),
       BoxShadow(
-        color: accentColor.withOpacity(shadowOpacity * 0.5 * intensity),
+        color: accentColor.withValues(alpha: shadowOpacity * 0.5 * intensity),
         blurRadius: 40.0 * intensity,
         spreadRadius: 1.0 * intensity,
         offset: Offset(0, 8 * intensity),
@@ -57,9 +57,9 @@ class GlassEffects {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          accentColor.withOpacity(0.15),
-          accentColor.withOpacity(0.08),
-          accentColor.withOpacity(0.05),
+          accentColor.withValues(alpha: 0.15),
+          accentColor.withValues(alpha: 0.08),
+          accentColor.withValues(alpha: 0.05),
         ],
         stops: const [0.0, 0.5, 1.0],
       );
@@ -68,9 +68,9 @@ class GlassEffects {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          accentColor.withOpacity(0.12),
-          accentColor.withOpacity(0.06),
-          accentColor.withOpacity(0.03),
+          accentColor.withValues(alpha: 0.12),
+          accentColor.withValues(alpha: 0.06),
+          accentColor.withValues(alpha: 0.03),
         ],
         stops: const [0.0, 0.5, 1.0],
       );
@@ -85,12 +85,12 @@ class GlassEffects {
     return BoxDecoration(
       borderRadius: borderRadius,
       border: Border.all(
-        color: accentColor.withOpacity(borderOpacity),
+        color: accentColor.withValues(alpha: borderOpacity),
         width: 1.0,
       ),
       boxShadow: [
         BoxShadow(
-          color: accentColor.withOpacity(0.1),
+          color: accentColor.withValues(alpha: 0.1),
           blurRadius: 8.0,
           spreadRadius: 0.5,
           offset: const Offset(0, 2),
@@ -109,12 +109,12 @@ class GlassEffects {
       borderRadius: borderRadius,
       boxShadow: [
         BoxShadow(
-          color: accentColor.withOpacity(0.08 * intensity),
+          color: accentColor.withValues(alpha: 0.08 * intensity),
           blurRadius: 12.0 * intensity,
           spreadRadius: 1.0 * intensity,
         ),
         BoxShadow(
-          color: accentColor.withOpacity(0.04 * intensity),
+          color: accentColor.withValues(alpha: 0.04 * intensity),
           blurRadius: 24.0 * intensity,
           spreadRadius: 0.5 * intensity,
         ),
@@ -144,8 +144,8 @@ class GlassEffects {
     EdgeInsets? padding,
   }) {
     final backgroundColor = brightness == Brightness.dark
-        ? const Color(0xFF000000).withOpacity(backgroundOpacityMedium)
-        : const Color(0xFFFFFFFF).withOpacity(backgroundOpacityLight);
+        ? const Color(0xFF000000).withValues(alpha: backgroundOpacityMedium)
+        : const Color(0xFFFFFFFF).withValues(alpha: backgroundOpacityLight);
 
     return Container(
       padding: padding,
@@ -157,7 +157,7 @@ class GlassEffects {
           brightness: brightness,
         ),
         border: Border.all(
-          color: accentColor.withOpacity(borderOpacity),
+          color: accentColor.withValues(alpha: borderOpacity),
           width: 1.0,
         ),
         boxShadow: glassShadows(accentColor: accentColor),

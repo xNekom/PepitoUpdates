@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 class FrostedPanel extends StatelessWidget {
   final Widget child;
@@ -8,6 +9,8 @@ class FrostedPanel extends StatelessWidget {
   final EdgeInsets? padding;
   final BorderRadius? borderRadius;
   final bool showBorder;
+  /// If true, the background will be completely transparent (only blur effect)
+  final bool fullyTransparent;
 
   const FrostedPanel({
     super.key,
@@ -17,16 +20,33 @@ class FrostedPanel extends StatelessWidget {
     this.padding,
     this.borderRadius,
     this.showBorder = true,
+    this.fullyTransparent = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final brightness = CupertinoTheme.of(context).brightness ?? Brightness.light;
+    final brightness = Theme.of(context).brightness;
     final defaultBgColor = brightness == Brightness.dark
-        ? CupertinoColors.black.withOpacity(0.3)
-        : CupertinoColors.white.withOpacity(0.3);
+        ? CupertinoColors.black.withValues(alpha: 0.3)
+        : CupertinoColors.white.withValues(alpha: 0.3);
 
     final radius = borderRadius ?? BorderRadius.circular(0);
+    
+    // If fullyTransparent is true, use completely transparent color
+    // Otherwise, use the provided backgroundColor or default themed color
+    final Color effectiveColor;
+    if (fullyTransparent || backgroundColor == Colors.transparent) {
+      effectiveColor = Colors.transparent;
+    } else if (backgroundColor != null) {
+      effectiveColor = backgroundColor!;
+    } else {
+      effectiveColor = defaultBgColor;
+    }
+    
+    // Border color based on theme
+    final borderColor = (brightness == Brightness.dark
+        ? CupertinoColors.white
+        : CupertinoColors.black).withValues(alpha: 0.15);
 
     return ClipRRect(
       borderRadius: radius,
@@ -35,13 +55,11 @@ class FrostedPanel extends StatelessWidget {
         child: Container(
           padding: padding,
           decoration: BoxDecoration(
-            color: backgroundColor ?? defaultBgColor,
+            color: effectiveColor,
             borderRadius: radius,
             border: showBorder ? Border.all(
-              color: (brightness == Brightness.dark
-                  ? CupertinoColors.white
-                  : CupertinoColors.black).withOpacity(0.1),
-              width: 1.0,
+              color: borderColor,
+              width: 0.5,
             ) : null,
           ),
           child: child,

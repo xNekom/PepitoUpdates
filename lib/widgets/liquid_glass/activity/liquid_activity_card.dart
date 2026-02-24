@@ -1,17 +1,22 @@
-import 'package:flutter/material.dart';
-import '../../generated/app_localizations.dart';
-import '../../models/pepito_activity.dart';
-import '../../utils/date_utils.dart';
-import '../../utils/theme_utils.dart';
-import 'activity_svg_icon.dart';
+import 'package:flutter/cupertino.dart';
+import '../../../models/pepito_activity.dart';
+import '../../../theme/liquid_glass/apple_colors.dart';
+import '../../../theme/liquid_glass/glass_effects.dart';
+import '../../../utils/date_utils.dart';
+import '../../../utils/platform_detector.dart';
+import '../../../generated/app_localizations.dart';
+import '../components/glass_card.dart';
+import '../components/frosted_panel.dart';
+import 'liquid_activity_icon.dart';
 
-class ActivityCard extends StatelessWidget {
+/// Widget de tarjeta de actividad con diseño Liquid Glass completo
+class LiquidActivityCard extends StatelessWidget {
   final PepitoActivity activity;
   final VoidCallback? onTap;
   final bool showDate;
   final bool compact;
 
-  const ActivityCard({
+  const LiquidActivityCard({
     super.key,
     required this.activity,
     this.onTap,
@@ -21,46 +26,45 @@ class ActivityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final isDesktop = PlatformDetector.isDesktop;
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth <= 600;
-    
+
     // Responsive margins and padding
     final horizontalMargin = compact ? (isSmallScreen ? 6.0 : 8.0) : (isSmallScreen ? 12.0 : 16.0);
     final verticalMargin = compact ? (isSmallScreen ? 3.0 : 4.0) : (isSmallScreen ? 6.0 : 8.0);
-    final padding = compact ? (isSmallScreen ? 8.0 : 12.0) : (isSmallScreen ? 12.0 : 16.0);
-    
-    return Card(
+    final padding = compact ? (isSmallScreen ? 12.0 : 16.0) : (isSmallScreen ? 16.0 : 20.0);
+
+    return Container(
       margin: EdgeInsets.symmetric(
         horizontal: horizontalMargin,
         vertical: verticalMargin,
       ),
-      child: InkWell(
+      child: GestureDetector(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
+        child: GlassCard(
+          accentColor: AppleColors.getActivityColor(_getActivityType()),
           padding: EdgeInsets.all(padding),
-          child: compact ? _buildCompactContent(colorScheme, context) : _buildFullContent(colorScheme, context),
+          child: compact
+              ? _buildCompactContent(context, isDesktop, isSmallScreen)
+              : _buildFullContent(context, isDesktop, isSmallScreen),
         ),
       ),
     );
   }
 
-  Widget _buildFullContent(ColorScheme colorScheme, BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isSmallScreen = screenWidth <= 600;
+  Widget _buildFullContent(BuildContext context, bool isDesktop, bool isSmallScreen) {
     final titleFontSize = isSmallScreen ? 16.0 : 18.0;
     final subtitleFontSize = isSmallScreen ? 12.0 : 14.0;
     final spacing = isSmallScreen ? 8.0 : 12.0;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Row(
           children: [
-            _buildActivityIcon(colorScheme),
+            _buildActivityIcon(isDesktop),
             SizedBox(width: isSmallScreen ? 8 : 12),
             Expanded(
               child: Column(
@@ -69,10 +73,10 @@ class ActivityCard extends StatelessWidget {
                 children: [
                   Text(
                     activity.displayTypeLocalized(context),
-                    style: TextStyle(
+                    style: CupertinoTheme.of(context).textTheme.navTitleTextStyle.copyWith(
                       fontSize: titleFontSize,
                       fontWeight: FontWeight.w600,
-                      color: colorScheme.onSurface,
+                      color: AppleColors.textPrimary(context),
                     ),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
@@ -80,9 +84,9 @@ class ActivityCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     AppDateUtils.getRelativeTime(activity.dateTime, context),
-                    style: TextStyle(
+                    style: CupertinoTheme.of(context).textTheme.tabLabelTextStyle.copyWith(
+                      color: AppleColors.textSecondary(context),
                       fontSize: subtitleFontSize,
-                      color: colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
@@ -92,37 +96,35 @@ class ActivityCard extends StatelessWidget {
             ),
             if (activity.confidence != null) ...[
               const SizedBox(width: 8),
-              _buildConfidenceChip(colorScheme),
+              _buildConfidenceChip(context, isSmallScreen),
             ],
           ],
         ),
         if (showDate) ...[
           SizedBox(height: spacing),
-          _buildDateTimeInfo(colorScheme),
+          _buildDateTimeInfo(context, isSmallScreen),
         ],
         if (activity.location != null) ...[
           SizedBox(height: isSmallScreen ? 6 : 8),
-          _buildLocationInfo(colorScheme),
+          _buildLocationInfo(context, isSmallScreen),
         ],
         if (activity.metadata != null && activity.metadata!.isNotEmpty) ...[
           SizedBox(height: isSmallScreen ? 6 : 8),
-          _buildMetadataInfo(context, colorScheme),
+          _buildMetadataInfo(context, isSmallScreen),
         ],
       ],
     );
   }
 
-  Widget _buildCompactContent(ColorScheme colorScheme, BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isSmallScreen = screenWidth <= 600;
+  Widget _buildCompactContent(BuildContext context, bool isDesktop, bool isSmallScreen) {
     final iconSize = isSmallScreen ? 18.0 : 20.0;
     final titleFontSize = isSmallScreen ? 14.0 : 16.0;
     final timeFontSize = isSmallScreen ? 10.0 : 12.0;
     final spacing = isSmallScreen ? 8.0 : 12.0;
-    
+
     return Row(
       children: [
-        _buildActivityIcon(colorScheme, size: iconSize),
+        _buildActivityIcon(isDesktop, size: iconSize),
         SizedBox(width: spacing),
         Expanded(
           child: Column(
@@ -131,19 +133,19 @@ class ActivityCard extends StatelessWidget {
             children: [
               Text(
                 activity.displayTypeLocalized(context),
-                style: TextStyle(
+                style: CupertinoTheme.of(context).textTheme.navTitleTextStyle.copyWith(
                   fontSize: titleFontSize,
                   fontWeight: FontWeight.w500,
-                  color: colorScheme.onSurface,
+                  color: AppleColors.textPrimary(context),
                 ),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
               ),
               Text(
                 AppDateUtils.formatTime(activity.dateTime),
-                style: TextStyle(
+                style: CupertinoTheme.of(context).textTheme.tabLabelTextStyle.copyWith(
+                  color: AppleColors.textSecondary(context),
                   fontSize: timeFontSize,
-                  color: colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
@@ -153,88 +155,85 @@ class ActivityCard extends StatelessWidget {
         ),
         if (activity.confidence != null) ...[
           const SizedBox(width: 8),
-          _buildConfidenceChip(colorScheme, compact: true),
+          _buildConfidenceChip(context, isSmallScreen, compact: true),
         ],
       ],
     );
   }
 
-  Widget _buildActivityIcon(ColorScheme colorScheme, {double size = 24}) {
+  Widget _buildActivityIcon(bool isDesktop, {double size = 24}) {
     // Verificar si es una actividad reciente para mostrar animación
     final now = DateTime.now();
     final difference = now.difference(activity.dateTime);
     final isRecent = difference.inMinutes < 5;
-    
-    if (isRecent) {
-      return ActivityAnimatedIcon(
-        activity: activity,
-        size: size,
-      );
-    } else {
-      return ActivitySvgIcon(
-        activity: activity,
-        size: size,
-      );
-    }
+
+    return LiquidActivityIcon(
+      activity: activity,
+      size: size,
+      showAnimation: isRecent,
+    );
   }
 
-  Widget _buildConfidenceChip(ColorScheme colorScheme, {bool compact = false}) {
+  Widget _buildConfidenceChip(BuildContext context, bool isSmallScreen, {bool compact = false}) {
     final confidence = activity.confidence!;
     final percentage = (confidence * 100).round();
-    
+
     Color chipColor;
     if (confidence >= 0.8) {
-      chipColor = AppTheme.successColor;
+      chipColor = AppleColors.successGreen;
     } else if (confidence >= 0.6) {
-      chipColor = AppTheme.warningColor;
+      chipColor = AppleColors.warningOrange;
     } else {
-      chipColor = AppTheme.errorColor;
+      chipColor = AppleColors.errorRed;
     }
-    
+
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: compact ? 6 : 8,
         vertical: compact ? 2 : 4,
       ),
       decoration: BoxDecoration(
-        color: chipColor.withValues(alpha: 0.1),
+        color: chipColor.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: chipColor.withValues(alpha: 0.3),
           width: 1,
+        ),
+        boxShadow: GlassEffects.glassShadows(
+          accentColor: chipColor,
+          intensity: 0.3,
         ),
       ),
       child: Text(
         '$percentage%',
         style: TextStyle(
           fontSize: compact ? 10 : 12,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
           color: chipColor,
         ),
       ),
     );
   }
 
-  Widget _buildDateTimeInfo(ColorScheme colorScheme) {
-    return Container(
+  Widget _buildDateTimeInfo(BuildContext context, bool isSmallScreen) {
+    return FrostedPanel(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(8),
-      ),
+      borderRadius: BorderRadius.circular(8),
       child: Row(
         children: [
           Icon(
-            Icons.access_time,
+            CupertinoIcons.time,
             size: 16,
-            color: colorScheme.onSurface.withValues(alpha: 0.7),
+            color: AppleColors.textSecondary(context),
           ),
           const SizedBox(width: 8),
-          Text(
-            '${AppDateUtils.formatDate(activity.dateTime)} a las ${AppDateUtils.formatTime(activity.dateTime)}',
-            style: TextStyle(
-              fontSize: 14,
-              color: colorScheme.onSurface.withValues(alpha: 0.8),
+          Expanded(
+            child: Text(
+              '${AppDateUtils.formatDate(activity.dateTime)} a las ${AppDateUtils.formatTime(activity.dateTime)}',
+              style: CupertinoTheme.of(context).textTheme.textStyle.copyWith(
+                fontSize: 14,
+                color: AppleColors.textPrimary(context),
+              ),
             ),
           ),
         ],
@@ -242,29 +241,31 @@ class ActivityCard extends StatelessWidget {
     );
   }
 
-  Widget _buildLocationInfo(ColorScheme colorScheme) {
+  Widget _buildLocationInfo(BuildContext context, bool isSmallScreen) {
     return Row(
       children: [
         Icon(
-          Icons.location_on,
+          CupertinoIcons.location,
           size: 16,
-          color: colorScheme.onSurface.withValues(alpha: 0.7),
+          color: AppleColors.textSecondary(context),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             activity.location!,
-            style: TextStyle(
+            style: CupertinoTheme.of(context).textTheme.textStyle.copyWith(
               fontSize: 14,
-              color: colorScheme.onSurface.withValues(alpha: 0.8),
+              color: AppleColors.textPrimary(context),
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildMetadataInfo(BuildContext context, ColorScheme colorScheme) {
+  Widget _buildMetadataInfo(BuildContext context, bool isSmallScreen) {
     // Transformar campos técnicos a nombres más amigables para el usuario
     final transformedMetadata = activity.metadata!.entries.map((entry) {
       String displayKey;
@@ -339,32 +340,29 @@ class ActivityCard extends StatelessWidget {
     // Si no hay metadata relevante para mostrar, no mostrar la sección
     if (transformedMetadata.isEmpty) return const SizedBox.shrink();
 
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(6),
-      ),
+    return FrostedPanel(
+      padding: const EdgeInsets.all(12),
+      borderRadius: BorderRadius.circular(8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             AppLocalizations.of(context)!.additionalInformation,
-            style: TextStyle(
+            style: CupertinoTheme.of(context).textTheme.tabLabelTextStyle.copyWith(
               fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: colorScheme.onSurface.withValues(alpha: 0.7),
+              fontWeight: FontWeight.w600,
+              color: AppleColors.textSecondary(context),
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           ...transformedMetadata.map(
             (entry) => Padding(
               padding: const EdgeInsets.only(top: 2),
               child: Text(
                 '${entry.key}: ${entry.value}',
-                style: TextStyle(
+                style: CupertinoTheme.of(context).textTheme.tabLabelTextStyle.copyWith(
                   fontSize: 12,
-                  color: colorScheme.onSurface.withValues(alpha: 0.6),
+                  color: AppleColors.textSecondary(context),
                 ),
               ),
             ),
@@ -373,67 +371,15 @@ class ActivityCard extends StatelessWidget {
       ),
     );
   }
-}
 
-class ActivityListTile extends StatelessWidget {
-  final PepitoActivity activity;
-  final VoidCallback? onTap;
-  final bool showTrailing;
-
-  const ActivityListTile({
-    super.key,
-    required this.activity,
-    this.onTap,
-    this.showTrailing = true,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final activityColor = AppTheme.getActivityColor(activity.type);
-    
-    return ListTile(
-      onTap: onTap,
-      leading: ActivitySvgIcon(
-        activity: activity,
-        size: 20,
-      ),
-      title: Text(
-        activity.displayTypeLocalized(context),
-        style: TextStyle(
-          fontWeight: FontWeight.w500,
-          color: colorScheme.onSurface,
-        ),
-      ),
-      subtitle: Text(
-        AppDateUtils.getRelativeTime(activity.dateTime, context),
-        style: TextStyle(
-          color: colorScheme.onSurface.withValues(alpha: 0.7),
-        ),
-      ),
-      trailing: showTrailing && activity.confidence != null
-          ? Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: activityColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                '${(activity.confidence! * 100).round()}%',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: activityColor,
-                ),
-              ),
-            )
-          : showTrailing
-              ? Icon(
-                  Icons.chevron_right,
-                  color: colorScheme.onSurface.withValues(alpha: 0.5),
-                )
-              : null,
-    );
+  ActivityType _getActivityType() {
+    switch (activity.type) {
+      case 'in':
+        return ActivityType.entrada;
+      case 'out':
+        return ActivityType.salida;
+      default:
+        return ActivityType.entrada;
+    }
   }
 }

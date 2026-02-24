@@ -21,7 +21,7 @@ class LiquidActivityIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final activityType = _getActivityType();
     final color = AppleColors.getActivityColor(activityType);
-    final svgPath = _getSvgPath();
+    final iconData = _getIconData(); // Cambiado de _getSvgPath
     final containerSize = size + 16;
 
     // Verificar si es reciente para animación
@@ -34,9 +34,9 @@ class LiquidActivityIcon extends StatelessWidget {
       height: containerSize,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         border: Border.all(
-          color: color.withOpacity(0.3),
+          color: color.withValues(alpha: 0.3),
           width: 1.5,
         ),
         boxShadow: GlassEffects.glassShadows(
@@ -48,14 +48,10 @@ class LiquidActivityIcon extends StatelessWidget {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Center(
-            child: SvgPicture.asset(
-              svgPath,
-              width: size,
-              height: size,
-              colorFilter: ColorFilter.mode(
-                color,
-                BlendMode.srcIn,
-              ),
+            child: Icon(
+              iconData,
+              size: size,
+              color: color,
             ),
           ),
         ),
@@ -69,24 +65,35 @@ class LiquidActivityIcon extends StatelessWidget {
     return iconWidget;
   }
 
-  String _getSvgPath() {
+  ActivityType _getActivityType() {
+    switch (activity.type) {
+      case 'in':
+        return ActivityType.entrada;
+      case 'out':
+        return ActivityType.salida;
+      default:
+        return ActivityType.entrada; // Default a entrada
+    }
+  }
+
+  IconData _getIconData() {
     final hour = activity.dateTime.hour;
 
     if (activity.isEntry) {
       if (hour >= 22 || hour <= 6) {
-        return 'assets/icons/cat_sleeping.svg';
+        return CupertinoIcons.moon_fill; // Durmiendo
       } else if (hour >= 6 && hour <= 12) {
-        return 'assets/icons/cat_eating.svg';
+        return CupertinoIcons.sun_max_fill; // Comiendo/Mañana
       } else {
-        return 'assets/icons/cat_active.svg';
+        return CupertinoIcons.paw_solid; // Activo
       }
     } else {
       if (hour >= 6 && hour <= 12) {
-        return 'assets/icons/cat_eating.svg';
+        return CupertinoIcons.sun_haze_fill; // Comiendo/Mañana
       } else if (hour >= 12 && hour <= 18) {
-        return 'assets/icons/cat_playing.svg';
+        return CupertinoIcons.game_controller_solid; // Jugando
       } else {
-        return 'assets/icons/cat_sleeping.svg';
+        return CupertinoIcons.moon_zzz_fill; // Durmiendo
       }
     }
   }
@@ -148,7 +155,7 @@ class _AnimatedIconState extends State<_AnimatedIcon>
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: AppleColors.getActivityColor(ActivityType.entrada).withOpacity(_glowAnimation.value),
+                color: AppleColors.getActivityColor(ActivityType.entrada).withValues(alpha: _glowAnimation.value),
                 blurRadius: 20 * _glowAnimation.value,
                 spreadRadius: 5 * _glowAnimation.value,
               ),

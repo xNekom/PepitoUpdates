@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -76,7 +75,7 @@ class PepitoApp extends ConsumerWidget {
     } else if (defaultTargetPlatform == TargetPlatform.windows) {
       return _buildFluentApp(themeMode, locale);
     } else if (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.macOS) {
-      return _buildCupertinoApp(themeMode, locale);
+      return _buildLiquidGlassApp(themeMode, locale);
     } else {
       return _buildMaterialApp(themeMode, locale);
     }
@@ -113,13 +112,15 @@ class PepitoApp extends ConsumerWidget {
       ],
       home: const SelectionArea(child: HomeScreen()),
     );
-  }  Widget _buildCupertinoApp(ThemeMode themeMode, Locale locale) {
-    return CupertinoApp(
-      title: 'Pépito',
+  }
+
+  Widget _buildLiquidGlassApp(ThemeMode themeMode, Locale locale) {
+    return MaterialApp(
+      title: 'Pépito - Liquid Glass',
       debugShowCheckedModeBanner: EnvironmentConfig.enableDebugMode,
-      theme: themeMode == ThemeMode.dark 
-          ? AppTheme.cupertinoDarkTheme 
-          : AppTheme.cupertinoLightTheme,
+      themeMode: themeMode,
+      theme: AppTheme.liquidGlassLightTheme,
+      darkTheme: AppTheme.liquidGlassDarkTheme,
       locale: locale,
       localizationsDelegates: const [
         AppLocalizations.delegate,

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/pepito_providers.dart';
-import '../widgets/statistics_widgets.dart';
+import '../widgets/adaptive/adaptive_statistics_card.dart';
+import '../widgets/liquid_glass/statistics/liquid_activity_chart.dart';
 import '../utils/theme_utils.dart';
 import '../utils/date_utils.dart';
 import '../models/pepito_activity.dart';
@@ -255,28 +256,28 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
             crossAxisSpacing: 16,
             childAspectRatio: 1.2,
             children: [
-              StatisticsCard(
+              AdaptiveStatisticsCard(
                 title: AppLocalizations.of(context)!.totalActivities,
                 value: totalActivities.toString(),
                 subtitle: AppLocalizations.of(context)!.inSelectedPeriod,
                 icon: Icons.pets,
                 color: AppTheme.primaryColor,
               ),
-              StatisticsCard(
+              AdaptiveStatisticsCard(
                 title: AppLocalizations.of(context)!.entries,
                 value: entryCount.toString(),
                 subtitle: totalActivities > 0 ? '${((entryCount / totalActivities) * 100).toStringAsFixed(1)}${AppLocalizations.of(context)!.percentOfTotal}' : '0${AppLocalizations.of(context)!.percentOfTotal}',
                 icon: Icons.home,
                 color: AppTheme.successColor,
               ),
-              StatisticsCard(
+              AdaptiveStatisticsCard(
                 title: AppLocalizations.of(context)!.exits,
                 value: exitCount.toString(),
                 subtitle: totalActivities > 0 ? '${((exitCount / totalActivities) * 100).toStringAsFixed(1)}${AppLocalizations.of(context)!.percentOfTotal}' : '0${AppLocalizations.of(context)!.percentOfTotal}',
                 icon: Icons.logout,
                 color: AppTheme.warningColor,
               ),
-              StatisticsCard(
+              AdaptiveStatisticsCard(
                 title: AppLocalizations.of(context)!.dailyAverage,
                 value: averageDaily.toStringAsFixed(1),
                 subtitle: AppLocalizations.of(context)!.activitiesPerDay,
@@ -286,11 +287,11 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
             ],
           ),
           const SizedBox(height: 24),
-          // Activity summary
-          ActivitySummaryCard(
-            activities: activities,
-            period: _getPeriodLabel(),
-          ),
+          // Activity summary - TODO: Implement ActivitySummaryCard
+          // ActivitySummaryCard(
+          //   activities: activities,
+          //   period: _getPeriodLabel(),
+          // ),
           const SizedBox(height: 16),
           // Time analysis
           _buildTimeAnalysisCard(activities),
@@ -328,10 +329,8 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
       child: Column(
         children: [
           // Activity chart
-          ActivityChart(
+          LiquidActivityChart(
             activities: activities,
-            title: AppLocalizations.of(context)!.activitiesPerDay,
-            dateRange: _selectedPeriod,
           ),
           const SizedBox(height: 16),
           // Hourly distribution
@@ -776,14 +775,6 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
   bool _isPeriodSelected(DateRange period) {
     return AppDateUtils.isSameDay(_selectedPeriod.start, period.start) &&
            AppDateUtils.isSameDay(_selectedPeriod.end, period.end);
-  }
-
-  String _getPeriodLabel() {
-    final index = _predefinedPeriods.indexWhere((p) => _isPeriodSelected(p));
-    if (index != -1) {
-      return _periodLabels[index].toLowerCase();
-    }
-    return AppLocalizations.of(context)!.customPeriod;
   }
 
   int _getDaysInPeriod() {

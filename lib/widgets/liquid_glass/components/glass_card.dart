@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../theme/liquid_glass/glass_effects.dart';
 import '../../../utils/platform_detector.dart';
@@ -78,7 +79,7 @@ class _GlassCardState extends State<GlassCard>
 
   @override
   Widget build(BuildContext context) {
-    final brightness = CupertinoTheme.of(context).brightness ?? Brightness.light;
+    final brightness = Theme.of(context).brightness;
     final accentColor = widget.accentColor ?? CupertinoColors.systemBlue;
     final borderRadius = widget.borderRadius ??
         BorderRadius.circular(GlassEffects.radiusMedium);
@@ -110,14 +111,17 @@ class _GlassCardState extends State<GlassCard>
                 padding: widget.padding ?? const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   borderRadius: borderRadius,
-                  color: const Color(0xFF000000).withOpacity(backgroundOpacity),
+                  // Theme-aware base color for glass effect
+                  color: (brightness == Brightness.dark
+                      ? CupertinoColors.black
+                      : CupertinoColors.white).withValues(alpha: backgroundOpacity),
                   gradient: GlassEffects.glassGradient(
                     accentColor: accentColor,
                     brightness: brightness,
                   ),
                   border: Border.all(
-                    color: accentColor.withOpacity(
-                      _isHovered ? GlassEffects.borderOpacity * 1.5 : GlassEffects.borderOpacity,
+                    color: accentColor.withValues(
+                      alpha: _isHovered ? GlassEffects.borderOpacity * 1.5 : GlassEffects.borderOpacity,
                     ),
                     width: 1.0,
                   ),
