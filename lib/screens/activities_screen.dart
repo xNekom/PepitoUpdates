@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import '../widgets/cat_paw_icon.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/pepito_providers.dart';
-import '../widgets/activity_card.dart';
+import '../widgets/adaptive/adaptive_activity_card.dart';
 import '../utils/theme_utils.dart';
 import '../utils/date_utils.dart';
 import '../models/pepito_activity.dart';
 import '../generated/app_localizations.dart';
+import '../widgets/liquid_glass/liquid_app_bar.dart';
 
 class ActivitiesScreen extends ConsumerStatefulWidget {
   const ActivitiesScreen({super.key});
@@ -100,6 +101,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: CustomScrollView(
         controller: _scrollController,
         slivers: [
@@ -113,6 +115,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
                 child: Center(child: CircularProgressIndicator()),
               ),
             ),
+          const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
         ],
       ),
       floatingActionButton: _buildScrollToTopFab(),
@@ -120,15 +123,10 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
   }
 
   Widget _buildAppBar(ColorScheme colorScheme) {
-    return SliverAppBar(
-      title: Text(
-        AppLocalizations.of(context)!.activities,
-        style: const TextStyle(fontWeight: FontWeight.bold),
-      ),
-      backgroundColor: AppTheme.primaryColor,
-      foregroundColor: Colors.white,
-      floating: true,
-      snap: true,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return LiquidAppBar(
+      title: AppLocalizations.of(context)!.activities,
       actions: [
         IconButton(
           onPressed: _showFilterDialog,
@@ -138,7 +136,10 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
               final hasActiveFilters = filter.hasActiveFilters;
               return Stack(
                 children: [
-                  const Icon(Icons.filter_list),
+                  Icon(
+                    Icons.filter_list,
+                    color: isDark ? Colors.white : Colors.black,
+                  ),
                   if (hasActiveFilters)
                     Positioned(
                       right: 0,
@@ -159,7 +160,10 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
         ),
         IconButton(
           onPressed: _loadInitialData,
-          icon: const Icon(Icons.refresh),
+          icon: Icon(
+            Icons.refresh,
+            color: isDark ? Colors.white : Colors.black,
+          ),
         ),
       ],
     );
@@ -316,7 +320,6 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
         final activity = _allActivities[index];
         final isToday = AppDateUtils.isToday(activity.dateTime);
         final isYesterday = AppDateUtils.isYesterday(activity.dateTime);
-
         // Show date header for first item or when date changes
         bool showDateHeader = false;
         if (index == 0) {
@@ -324,9 +327,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
         } else {
           final previousActivity = _allActivities[index - 1];
           final currentDate = AppDateUtils.startOfDay(activity.dateTime);
-          final previousDate = AppDateUtils.startOfDay(
-            previousActivity.dateTime,
-          );
+          final previousDate = AppDateUtils.startOfDay(previousActivity.dateTime);
           showDateHeader = !currentDate.isAtSameMomentAs(previousDate);
         }
 
@@ -340,7 +341,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
                 isToday: isToday,
                 isYesterday: isYesterday,
               ),
-            ActivityCard(
+            AdaptiveActivityCard(
               activity: activity,
               showDate: false,
               onTap: () => _showActivityDetails(activity),
@@ -500,7 +501,12 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 16),
-              Expanded(child: ActivityCard(activity: activity, showDate: true)),
+              Expanded(
+                child: AdaptiveActivityCard(
+                  activity: activity,
+                  showDate: true,
+                ),
+              ),
             ],
           ),
         ),

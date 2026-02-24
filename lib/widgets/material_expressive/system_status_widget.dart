@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/hybrid_pepito_provider.dart';
+import '../../providers/hybrid_pepito_provider.dart';
 
 /// Widget que muestra el estado del sistema y permite cambiar el modo de operación
 class SystemStatusWidget extends ConsumerWidget {

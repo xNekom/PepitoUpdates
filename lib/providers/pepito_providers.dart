@@ -75,8 +75,14 @@ final clearSupabaseActivitiesProvider = FutureProvider<bool>((ref) async {
   return await supabaseService.clearAllActivities();
 });
 
-
-
+// Provider para todas las actividades (sin paginación, para estadísticas)
+final allActivitiesProvider = FutureProvider<List<PepitoActivity>>((ref) async {
+  final supabaseService = ref.read(supabaseServiceProvider);
+  return await supabaseService.getStatusHistory(
+    limit: 10000, // Número grande para obtener todas
+    since: null, // Desde el inicio
+  );
+});
 
 
 // Provider para el servicio SSE

@@ -3,13 +3,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/cupertino.dart';
 import '../providers/pepito_providers.dart';
 import '../utils/theme_utils.dart';
 import '../generated/app_localizations.dart';
 import '../services/localization_service.dart';
 import '../services/cache_service.dart';
 import 'cache_stats_screen.dart';
-import '../widgets/system_status_widget.dart';
+import '../widgets/adaptive/adaptive_system_status_widget.dart';
+import '../widgets/liquid_glass/components/glass_card.dart';
+import '../widgets/liquid_glass/components/frosted_panel.dart';
+import '../widgets/liquid_glass/components/liquid_glass_switch.dart';
+import '../theme/liquid_glass/apple_colors.dart';
+import '../theme/liquid_glass/glass_effects.dart';
+import '../widgets/liquid_glass/liquid_app_bar.dart';
 
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -27,20 +34,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
+    return _buildLiquidGlassUI(context);
+  }
+
+  Widget _buildLiquidGlassUI(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: CustomScrollView(
         slivers: [
-          _buildAppBar(colorScheme),
+          LiquidAppBar(title: AppLocalizations.of(context)!.settings),
           SliverList(
             delegate: SliverChildListDelegate([
+              const SizedBox(height: 16),
               _buildNotificationSection(),
               _buildAppearanceSection(),
               _buildDataSection(),
               _buildAboutSection(),
-              const SizedBox(height: 32),
+              const SizedBox(height: 100), // Extra padding for bottom navbar
             ]),
           ),
         ],
@@ -48,18 +58,232 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     );
   }
 
-  Widget _buildAppBar(ColorScheme colorScheme) {
-    return SliverAppBar(
+
+  Widget _buildMaterial3ExpressiveNotificationSection() {
+    return Consumer(
+      builder: (context, ref, child) {
+        final notificationSettings = ref.watch(notificationSettingsProvider);
+        final theme = Theme.of(context);
+
+        return Card(
+          elevation: 4,
+          shadowColor: theme.colorScheme.shadow.withValues(alpha: 0.3),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(
+              color: theme.colorScheme.outline.withValues(alpha: 0.2),
+              width: 1,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.notifications,
+                      color: theme.colorScheme.primary,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      AppLocalizations.of(context)!.notifications,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildMaterial3ExpressiveSwitchTile(
+                  title: AppLocalizations.of(context)!.pushNotifications,
+                  subtitle: AppLocalizations.of(context)!.receiveNotificationsWhenPepitoEntersOrLeaves,
+                  value: notificationSettings.pushEnabled,
+                  onChanged: (value) {
+                    ref.read(notificationSettingsProvider.notifier).updatePushEnabled(value);
+                    if (value) {
+                      _requestNotificationPermission();
+                    }
+                  },
+                ),
+                _buildMaterial3ExpressiveSwitchTile(
+                  title: AppLocalizations.of(context)!.entryNotifications,
+                  subtitle: AppLocalizations.of(context)!.notifyWhenPepitoArrivesHome,
+                  value: notificationSettings.entryNotifications,
+                  enabled: notificationSettings.pushEnabled,
+                  onChanged: (value) {
+                    ref.read(notificationSettingsProvider.notifier).updateEntryNotifications(value);
+                  },
+                ),
+                _buildMaterial3ExpressiveSwitchTile(
+                  title: AppLocalizations.of(context)!.exitNotifications,
+                  subtitle: AppLocalizations.of(context)!.notifyWhenPepitoLeavesHome,
+                  value: notificationSettings.exitNotifications,
+                  enabled: notificationSettings.pushEnabled,
+                  onChanged: (value) {
+                    ref.read(notificationSettingsProvider.notifier).updateExitNotifications(value);
+                  },
+                ),
+                _buildMaterial3ExpressiveSwitchTile(
+                  title: AppLocalizations.of(context)!.sound,
+                  subtitle: 'Reproducir sonido con las notificaciones',
+                  value: notificationSettings.soundEnabled,
+                  enabled: notificationSettings.pushEnabled,
+                  onChanged: (value) {
+                    ref.read(notificationSettingsProvider.notifier).updateSoundEnabled(value);
+                  },
+                ),
+                if (!kIsWeb) _buildMaterial3ExpressiveSwitchTile(
+                  title: AppLocalizations.of(context)!.vibration,
+                  subtitle: 'Vibrar con las notificaciones',
+                  value: notificationSettings.vibrationEnabled,
+                  enabled: notificationSettings.pushEnabled,
+                  onChanged: (value) {
+                    ref.read(notificationSettingsProvider.notifier).updateVibrationEnabled(value);
+                  },
+                ),
+                if (notificationSettings.pushEnabled) ..._buildMaterial3ExpressiveQuietHoursSection(notificationSettings),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  List<Widget> _buildMaterial3ExpressiveQuietHoursSection(NotificationSettings settings) {
+    return [
+      const Divider(),
+      _buildMaterial3ExpressiveSwitchTile(
+        title: AppLocalizations.of(context)!.quietHours,
+        subtitle: AppLocalizations.of(context)!.doNotDisturbDuringCertainHours,
+        value: settings.quietHoursEnabled,
+        onChanged: (value) {
+          ref.read(notificationSettingsProvider.notifier).updateQuietHoursEnabled(value);
+        },
+      ),
+      if (settings.quietHoursEnabled) ...[
+        _buildMaterial3ExpressiveTimeTile(
+          title: AppLocalizations.of(context)!.quietHoursStart,
+          time: settings.quietHoursStart,
+          onChanged: (time) {
+            ref.read(notificationSettingsProvider.notifier).updateQuietHoursStart(time);
+          },
+        ),
+        _buildMaterial3ExpressiveTimeTile(
+          title: AppLocalizations.of(context)!.quietHoursEnd,
+          time: settings.quietHoursEnd,
+          onChanged: (time) {
+            ref.read(notificationSettingsProvider.notifier).updateQuietHoursEnd(time);
+          },
+        ),
+      ],
+    ];
+  }
+
+  Widget _buildMaterial3ExpressiveSwitchTile({
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+    bool enabled = true,
+  }) {
+    final theme = Theme.of(context);
+
+    return ListTile(
       title: Text(
-        AppLocalizations.of(context)!.settings,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
+        title,
+        style: theme.textTheme.bodyLarge?.copyWith(
+          color: enabled ? theme.colorScheme.onSurface : theme.colorScheme.onSurfaceVariant,
         ),
       ),
-      backgroundColor: AppTheme.primaryColor,
-      foregroundColor: Colors.white,
-      floating: true,
-      snap: true,
+      subtitle: Text(
+        subtitle,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: enabled ? theme.colorScheme.onSurfaceVariant : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+        ),
+      ),
+      trailing: Switch(
+        value: value,
+        onChanged: enabled ? onChanged : null,
+        activeColor: theme.colorScheme.primary,
+      ),
+      enabled: enabled,
+    );
+  }
+
+  Widget _buildMaterial3ExpressiveUI(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.settings),
+        backgroundColor: theme.colorScheme.surface,
+        foregroundColor: theme.colorScheme.onSurface,
+        elevation: 4,
+        shadowColor: theme.colorScheme.shadow.withValues(alpha: 0.3),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildMaterial3ExpressiveNotificationSection(),
+            _buildMaterial3ExpressiveAppearanceSection(),
+            _buildMaterial3ExpressiveDataSection(),
+            _buildMaterial3ExpressiveAboutSection(),
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMaterial3ExpressiveAppearanceSection() {
+    return _buildAppearanceSection();
+  }
+
+  Widget _buildMaterial3ExpressiveDataSection() {
+    return _buildDataSection();
+  }
+
+  Widget _buildMaterial3ExpressiveAboutSection() {
+    return _buildAboutSection();
+  }
+
+  Widget _buildMaterial3ExpressiveTimeTile({
+    required String title,
+    required TimeOfDay time,
+    required ValueChanged<TimeOfDay> onChanged,
+  }) {
+    final theme = Theme.of(context);
+
+    return ListTile(
+      title: Text(
+        title,
+        style: theme.textTheme.bodyLarge?.copyWith(
+          color: theme.colorScheme.onSurface,
+        ),
+      ),
+      trailing: Text(
+        time.format(context),
+        style: theme.textTheme.bodyLarge?.copyWith(
+          color: theme.colorScheme.primary,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      onTap: () async {
+        final TimeOfDay? picked = await showTimePicker(
+          context: context,
+          initialTime: time,
+        );
+        if (picked != null && picked != time) {
+          onChanged(picked);
+        }
+      },
     );
   }
 
@@ -195,7 +419,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     return Column(
       children: [
         // Widget de estado del sistema
-        const SystemStatusWidget(),
+        const AdaptiveSystemStatusWidget(),
         
         // Sección de datos original
         _buildSection(
@@ -286,10 +510,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     final padding = isSmallScreen ? 12.0 : 16.0;
     final iconSize = isSmallScreen ? 20.0 : 24.0;
     final spacing = isSmallScreen ? 8.0 : 12.0;
-    
+
     return Padding(
       padding: EdgeInsets.all(padding),
-      child: Card(
+      child: GlassCard(
+        accentColor: AppleColors.getActivityColor(ActivityType.entrada),
+        padding: EdgeInsets.zero,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -298,19 +524,34 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               padding: EdgeInsets.all(padding),
               child: Row(
                 children: [
-                  Icon(
-                    icon,
-                    color: AppTheme.primaryColor,
-                    size: iconSize,
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppleColors.getActivityColor(ActivityType.entrada).withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: AppleColors.getActivityColor(ActivityType.entrada).withValues(alpha: 0.3),
+                        width: 1,
+                      ),
+                      boxShadow: GlassEffects.glassShadows(
+                        accentColor: AppleColors.getActivityColor(ActivityType.entrada),
+                        intensity: 0.3,
+                      ),
+                    ),
+                    child: Icon(
+                      icon,
+                      color: AppleColors.getActivityColor(ActivityType.entrada),
+                      size: iconSize,
+                    ),
                   ),
                   SizedBox(width: spacing),
                   Expanded(
                     child: Text(
                       title,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.primaryColor,
-                        fontSize: isSmallScreen ? 18.0 : null,
+                      style: CupertinoTheme.of(context).textTheme.navTitleTextStyle.copyWith(
+                        fontSize: isSmallScreen ? 18.0 : 20.0,
+                        fontWeight: FontWeight.w700,
+                        color: AppleColors.textPrimary(context),
                       ),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
@@ -337,37 +578,60 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     final isSmallScreen = screenWidth <= 600;
     final titleFontSize = isSmallScreen ? 14.0 : 16.0;
     final subtitleFontSize = isSmallScreen ? 12.0 : 14.0;
-    
-    return SwitchListTile(
-      contentPadding: EdgeInsets.symmetric(
+
+    return FrostedPanel(
+      padding: EdgeInsets.symmetric(
         horizontal: isSmallScreen ? 12.0 : 16.0,
-        vertical: isSmallScreen ? 4.0 : 8.0,
+        vertical: isSmallScreen ? 8.0 : 12.0,
       ),
-      title: Text(
-        title,
-        style: TextStyle(
-          fontSize: titleFontSize,
-          color: enabled 
-              ? Theme.of(context).colorScheme.onSurface 
-              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
-        ),
-        overflow: TextOverflow.ellipsis,
-        maxLines: 2,
+      borderRadius: BorderRadius.circular(8),
+      backgroundColor: enabled
+          ? (Theme.of(context).brightness == Brightness.dark
+              ? CupertinoColors.black.withValues(alpha: 0.2)
+              : CupertinoColors.white.withValues(alpha: 0.6))
+          : (Theme.of(context).brightness == Brightness.dark 
+              ? CupertinoColors.systemGrey.withValues(alpha: 0.3) 
+              : CupertinoColors.systemGrey6.withValues(alpha: 0.5)),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: CupertinoTheme.of(context).textTheme.textStyle.copyWith(
+                    fontSize: titleFontSize,
+                    fontWeight: FontWeight.w600,
+                    color: enabled
+                        ? AppleColors.textPrimary(context)
+                        : AppleColors.textSecondary(context),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: CupertinoTheme.of(context).textTheme.tabLabelTextStyle.copyWith(
+                    fontSize: subtitleFontSize,
+                    color: enabled
+                        ? AppleColors.textSecondary(context)
+                        : AppleColors.textSecondary(context).withValues(alpha: 0.5),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 3,
+                ),
+              ],
+            ),
+          ),
+          LiquidGlassSwitch(
+            value: value,
+            onChanged: enabled ? onChanged : (_) {},
+            activeColor: AppleColors.getActivityColor(ActivityType.entrada),
+          ),
+        ],
       ),
-      subtitle: Text(
-        subtitle,
-        style: TextStyle(
-          fontSize: subtitleFontSize,
-          color: enabled 
-              ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)
-                : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
-        ),
-        overflow: TextOverflow.ellipsis,
-        maxLines: 3,
-      ),
-      value: value,
-      onChanged: enabled ? onChanged : null,
-      activeThumbColor: AppTheme.primaryColor,
     );
   }
 
@@ -381,29 +645,51 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     final isSmallScreen = screenWidth <= 600;
     final titleFontSize = isSmallScreen ? 14.0 : 16.0;
     final subtitleFontSize = isSmallScreen ? 12.0 : 14.0;
-    
-    return ListTile(
-      contentPadding: EdgeInsets.symmetric(
-        horizontal: isSmallScreen ? 12.0 : 16.0,
-        vertical: isSmallScreen ? 4.0 : 8.0,
-      ),
-      title: Text(
-        title,
-        style: TextStyle(fontSize: titleFontSize),
-        overflow: TextOverflow.ellipsis,
-        maxLines: 2,
-      ),
-      subtitle: Text(
-        subtitle,
-        style: TextStyle(
-          fontSize: subtitleFontSize,
-          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-        ),
-        overflow: TextOverflow.ellipsis,
-        maxLines: 3,
-      ),
-      trailing: trailing,
+
+    return GestureDetector(
       onTap: onTap,
+      child: FrostedPanel(
+        padding: EdgeInsets.symmetric(
+          horizontal: isSmallScreen ? 12.0 : 16.0,
+          vertical: isSmallScreen ? 8.0 : 12.0,
+        ),
+        borderRadius: BorderRadius.circular(8),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? CupertinoColors.black.withValues(alpha: 0.2)
+            : CupertinoColors.white.withValues(alpha: 0.6),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: CupertinoTheme.of(context).textTheme.textStyle.copyWith(
+                      fontSize: titleFontSize,
+                      fontWeight: FontWeight.w600,
+                      color: AppleColors.textPrimary(context),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: CupertinoTheme.of(context).textTheme.tabLabelTextStyle.copyWith(
+                      fontSize: subtitleFontSize,
+                      color: AppleColors.textSecondary(context),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 3,
+                  ),
+                ],
+              ),
+            ),
+            if (trailing != null) trailing,
+          ],
+        ),
+      ),
     );
   }
 
@@ -412,10 +698,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     required TimeOfDay time,
     required ValueChanged<TimeOfDay> onChanged,
   }) {
-    return ListTile(
-      title: Text(title),
-      subtitle: Text(time.format(context)),
-      trailing: const Icon(Icons.access_time),
+    return GestureDetector(
       onTap: () async {
         final TimeOfDay? picked = await showTimePicker(
           context: context,
@@ -425,6 +708,45 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           onChanged(picked);
         }
       },
+      child: FrostedPanel(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        borderRadius: BorderRadius.circular(8),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? CupertinoColors.black.withValues(alpha: 0.2)
+            : CupertinoColors.white.withValues(alpha: 0.6),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: CupertinoTheme.of(context).textTheme.textStyle.copyWith(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppleColors.textPrimary(context),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    time.format(context),
+                    style: CupertinoTheme.of(context).textTheme.tabLabelTextStyle.copyWith(
+                      fontSize: 14,
+                      color: AppleColors.textSecondary(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              CupertinoIcons.time,
+              color: AppleColors.getActivityColor(ActivityType.entrada).withValues(alpha: 0.7),
+              size: 20,
+            ),
+          ],
+        ),
+      ),
     );
   }
 

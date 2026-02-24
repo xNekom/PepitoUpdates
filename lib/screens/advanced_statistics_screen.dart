@@ -1,81 +1,140 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../providers/pepito_providers.dart';
 import '../utils/theme_utils.dart';
+import '../widgets/liquid_glass/components/glass_card.dart';
+import '../widgets/liquid_glass/components/frosted_panel.dart';
+import '../widgets/material_expressive/statistics_widgets.dart' as m3_stats;
+import '../theme/liquid_glass/apple_colors.dart';
+import '../theme/liquid_glass/glass_effects.dart';
+import '../widgets/liquid_glass/liquid_app_bar.dart';
 
 class AdvancedStatisticsScreen extends ConsumerWidget {
   const AdvancedStatisticsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    return _buildLiquidGlassUI(context, ref);
+  }
+
+  Widget _buildLiquidGlassUI(BuildContext context, WidgetRef ref) {
     final colors = AppTheme.getColors(context);
 
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(context, colors),
-              const SizedBox(height: 24),
+      backgroundColor: Colors.transparent,
+      body: CustomScrollView(
+        slivers: [
+          LiquidAppBar(title: 'Estadísticas Avanzadas'),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                   _buildHeader(context, colors),
+                  const SizedBox(height: 24),
 
-              // Estadísticas principales
-              _buildMainStats(context, ref, colors),
-              const SizedBox(height: 24),
+                  // Estadísticas principales
+                  _buildMainStats(context, ref, colors),
+                  const SizedBox(height: 24),
 
-              // Gráfico de líneas - Actividad por día
-              _buildActivityTrendChart(context, ref, colors),
-              const SizedBox(height: 24),
+                  // Gráfico de líneas - Actividad por día
+                  _buildActivityTrendChart(context, ref, colors),
+                  const SizedBox(height: 24),
 
-              // Gráfico circular - Distribución
-              _buildActivityDistributionChart(context, ref, colors),
-              const SizedBox(height: 24),
+                  // Gráfico circular - Distribución
+                  _buildActivityDistributionChart(context, ref, colors),
+                  const SizedBox(height: 24),
 
-              // Gráfico de barras - Actividad por hora
-              _buildHourlyActivityChart(context, ref, colors),
-              const SizedBox(height: 24),
+                  // Gráfico de barras - Actividad por hora
+                  _buildHourlyActivityChart(context, ref, colors),
+                  const SizedBox(height: 24),
 
-              // Análisis de patrones
-              _buildPatternAnalysis(context, ref, colors),
-            ],
+                  // Análisis de patrones
+                  _buildPatternAnalysis(context, ref, colors),
+                  
+                  // Padding extra for bottom navbar
+                  const SizedBox(height: 80),
+                ],
+              ),
+            ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMaterial3ExpressiveUI(BuildContext context, WidgetRef ref) {
+    final colors = AppTheme.getColors(context);
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Estadísticas Avanzadas'),
+        backgroundColor: theme.colorScheme.surface,
+        foregroundColor: theme.colorScheme.onSurface,
+        elevation: 4,
+        shadowColor: theme.colorScheme.shadow.withValues(alpha: 0.3),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildMaterial3ExpressiveHeader(context, colors),
+            const SizedBox(height: 24),
+
+            // Estadísticas principales
+            _buildMaterial3ExpressiveMainStats(context, ref, colors),
+            const SizedBox(height: 24),
+
+            // Gráfico de líneas - Actividad por día
+            _buildMaterial3ExpressiveActivityTrendChart(context, ref, colors),
+            const SizedBox(height: 24),
+
+            // Gráfico circular - Distribución
+            _buildMaterial3ExpressiveActivityDistributionChart(context, ref, colors),
+            const SizedBox(height: 24),
+
+            // Gráfico de barras - Actividad por hora
+            _buildMaterial3ExpressiveHourlyActivityChart(context, ref, colors),
+            const SizedBox(height: 24),
+
+            // Análisis de patrones
+            _buildMaterial3ExpressivePatternAnalysis(context, ref, colors),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildHeader(BuildContext context, AppColors colors) {
-    return Container(
+    return GlassCard(
+      accentColor: AppleColors.getActivityColor(ActivityType.entrada),
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppTheme.primaryColor.withValues(alpha: 0.1),
-            AppTheme.expressiveTeal.withValues(alpha: 0.05),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppTheme.primaryColor.withValues(alpha: 0.2),
-          width: 1,
-        ),
-      ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withValues(alpha: 0.2),
+              color: AppleColors.getActivityColor(ActivityType.entrada).withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppleColors.getActivityColor(ActivityType.entrada).withValues(alpha: 0.3),
+                width: 1,
+              ),
+              boxShadow: GlassEffects.glassShadows(
+                accentColor: AppleColors.getActivityColor(ActivityType.entrada),
+                intensity: 0.3,
+              ),
             ),
             child: Icon(
-              Icons.analytics,
-              color: AppTheme.primaryColor,
+              CupertinoIcons.chart_bar_fill,
+              color: AppleColors.getActivityColor(ActivityType.entrada),
               size: 32,
             ),
           ),
@@ -86,24 +145,85 @@ class AdvancedStatisticsScreen extends ConsumerWidget {
               children: [
                 Text(
                   'Análisis Avanzado de Pépito',
-                  style: TextStyle(
+                  style: CupertinoTheme.of(context).textTheme.navTitleTextStyle.copyWith(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
-                    color: colors.onSurface,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Gráficos detallados y análisis de patrones',
-                  style: TextStyle(
+                  style: CupertinoTheme.of(context).textTheme.tabLabelTextStyle.copyWith(
                     fontSize: 14,
-                    color: colors.onSurface.withValues(alpha: 0.7),
+                    color: CupertinoColors.systemGrey,
                   ),
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMaterial3ExpressiveHeader(BuildContext context, AppColors colors) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Card(
+      elevation: 8,
+      shadowColor: colorScheme.primary.withValues(alpha: 0.3),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+        side: BorderSide(
+          color: colorScheme.primary.withValues(alpha: 0.2),
+          width: 1.5,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: colorScheme.primary.withValues(alpha: 0.3),
+                  width: 2,
+                ),
+              ),
+              child: Icon(
+                Icons.analytics_rounded,
+                color: colorScheme.primary,
+                size: 32,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Análisis Avanzado de Pépito',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Gráficos detallados y análisis de patrones',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -120,6 +240,34 @@ class AdvancedStatisticsScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildMaterial3ExpressiveMainStats(BuildContext context, WidgetRef ref, AppColors colors) {
+    final statsAsync = ref.watch(statisticsProvider(
+      const StatisticsParams(),
+    ));
+
+    return statsAsync.when(
+      data: (stats) => _buildMaterial3ExpressiveStatsGrid(context, stats, colors),
+      loading: () => _buildLoadingStats(),
+      error: (error, stack) => _buildErrorStats(error.toString()),
+    );
+  }
+
+  Widget _buildMaterial3ExpressiveActivityTrendChart(BuildContext context, WidgetRef ref, AppColors colors) {
+    return _buildActivityTrendChart(context, ref, colors);
+  }
+
+  Widget _buildMaterial3ExpressiveActivityDistributionChart(BuildContext context, WidgetRef ref, AppColors colors) {
+    return _buildActivityDistributionChart(context, ref, colors);
+  }
+
+  Widget _buildMaterial3ExpressiveHourlyActivityChart(BuildContext context, WidgetRef ref, AppColors colors) {
+    return _buildHourlyActivityChart(context, ref, colors);
+  }
+
+  Widget _buildMaterial3ExpressivePatternAnalysis(BuildContext context, WidgetRef ref, AppColors colors) {
+    return _buildPatternAnalysis(context, ref, colors);
+  }
+
   Widget _buildStatsGrid(BuildContext context, Map<String, dynamic> stats, AppColors colors) {
     final totalActivities = stats['total_activities'] ?? 0;
     final totalEntries = stats['total_entries'] ?? 0;
@@ -130,6 +278,7 @@ class AdvancedStatisticsScreen extends ConsumerWidget {
       children: [
         Expanded(
           child: _buildStatCard(
+            context,
             'Total',
             totalActivities.toString(),
             Icons.timeline,
@@ -140,6 +289,7 @@ class AdvancedStatisticsScreen extends ConsumerWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _buildStatCard(
+            context,
             'Entradas',
             totalEntries.toString(),
             Icons.login,
@@ -150,6 +300,7 @@ class AdvancedStatisticsScreen extends ConsumerWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _buildStatCard(
+            context,
             'Salidas',
             totalExits.toString(),
             Icons.logout,
@@ -160,6 +311,7 @@ class AdvancedStatisticsScreen extends ConsumerWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _buildStatCard(
+            context,
             'En Casa',
             '$entryPercentage%',
             Icons.home,
@@ -171,41 +323,78 @@ class AdvancedStatisticsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color, AppColors colors) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withValues(alpha: 0.2),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+  Widget _buildMaterial3ExpressiveStatsGrid(BuildContext context, Map<String, dynamic> stats, AppColors colors) {
+    final totalActivities = stats['total_activities'] ?? 0;
+    final totalEntries = stats['total_entries'] ?? 0;
+    final totalExits = stats['total_exits'] ?? 0;
+    final entryPercentage = stats['entry_percentage'] ?? 0;
+
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: [
+        SizedBox(
+          width: MediaQuery.of(context).size.width > 600 ? 200 : double.infinity,
+          child: m3_stats.StatisticsCard(
+            title: 'Total',
+            value: totalActivities.toString(),
+            icon: Icons.timeline,
+            color: Theme.of(context).colorScheme.primary,
           ),
-        ],
-      ),
+        ),
+        SizedBox(
+          width: MediaQuery.of(context).size.width > 600 ? 200 : double.infinity,
+          child: m3_stats.StatisticsCard(
+            title: 'Entradas',
+            value: totalEntries.toString(),
+            icon: Icons.login,
+            color: Colors.green,
+          ),
+        ),
+        SizedBox(
+          width: MediaQuery.of(context).size.width > 600 ? 200 : double.infinity,
+          child: m3_stats.StatisticsCard(
+            title: 'Salidas',
+            value: totalExits.toString(),
+            icon: Icons.logout,
+            color: Colors.orange,
+          ),
+        ),
+        SizedBox(
+          width: MediaQuery.of(context).size.width > 600 ? 200 : double.infinity,
+          child: m3_stats.StatisticsCard(
+            title: 'En Casa',
+            value: '$entryPercentage%',
+            icon: Icons.home,
+            color: Colors.teal,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard(BuildContext context, String title, String value, IconData icon, Color color, AppColors colors) {
+    return FrostedPanel(
+      padding: const EdgeInsets.all(16),
+      borderRadius: BorderRadius.circular(12),
+      backgroundColor: color.withValues(alpha: 0.1),
       child: Column(
         children: [
           Icon(icon, color: color, size: 24),
           const SizedBox(height: 8),
           Text(
             value,
-            style: TextStyle(
+            style: CupertinoTheme.of(context).textTheme.navTitleTextStyle.copyWith(
               fontSize: 20,
               fontWeight: FontWeight.w800,
-              color: colors.onSurface,
+              color: color,
             ),
           ),
           Text(
             title,
-            style: TextStyle(
+            style: CupertinoTheme.of(context).textTheme.tabLabelTextStyle.copyWith(
               fontSize: 12,
-              color: colors.onSurface.withValues(alpha: 0.7),
+              color: CupertinoColors.systemGrey,
             ),
           ),
         ],
@@ -218,25 +407,17 @@ class AdvancedStatisticsScreen extends ConsumerWidget {
       const StatisticsParams(),
     ));
     
-    return Container(
+    return GlassCard(
+      accentColor: AppleColors.getActivityColor(ActivityType.entrada),
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppTheme.primaryColor.withValues(alpha: 0.2),
-          width: 1,
-        ),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Tendencia de Actividad (Últimos 7 días)',
-            style: TextStyle(
+            style: CupertinoTheme.of(context).textTheme.navTitleTextStyle.copyWith(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: colors.onSurface,
             ),
           ),
           const SizedBox(height: 20),
@@ -264,9 +445,9 @@ class AdvancedStatisticsScreen extends ConsumerWidget {
                             final date = DateTime.now().subtract(Duration(days: 6 - value.toInt()));
                             return Text(
                               DateFormat('dd/MM').format(date),
-                              style: TextStyle(
+                              style: CupertinoTheme.of(context).textTheme.tabLabelTextStyle.copyWith(
                                 fontSize: 10,
-                                color: colors.onSurface.withValues(alpha: 0.7),
+                                color: CupertinoColors.systemGrey,
                               ),
                             );
                           },
@@ -280,12 +461,12 @@ class AdvancedStatisticsScreen extends ConsumerWidget {
                       LineChartBarData(
                         spots: _generateRealTrendData(activities), // ✅ DATOS REALES
                         isCurved: true,
-                        color: AppTheme.primaryColor,
+                        color: AppleColors.getActivityColor(ActivityType.entrada),
                         barWidth: 3,
                         dotData: FlDotData(show: true),
                         belowBarData: BarAreaData(
                           show: true,
-                          color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                          color: AppleColors.getActivityColor(ActivityType.entrada).withValues(alpha: 0.1),
                         ),
                       ),
                     ],
@@ -306,25 +487,15 @@ class AdvancedStatisticsScreen extends ConsumerWidget {
       const StatisticsParams(),
     ));
 
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppTheme.primaryColor.withValues(alpha: 0.2),
-          width: 1,
-        ),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Distribución de Actividades',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: colors.onSurface,
+            style: CupertinoTheme.of(context).textTheme.navTitleTextStyle.copyWith(
+              color: AppleColors.textPrimary(context),
             ),
           ),
           const SizedBox(height: 20),
@@ -349,7 +520,7 @@ class AdvancedStatisticsScreen extends ConsumerWidget {
                             PieChartSectionData(
                               value: totalEntries.toDouble(),
                               title: 'Entradas\n$totalEntries',
-                              color: AppTheme.successColor,
+                              color: AppleColors.successGreen,
                               radius: 80,
                               titleStyle: TextStyle(
                                 fontSize: 12,
@@ -360,7 +531,7 @@ class AdvancedStatisticsScreen extends ConsumerWidget {
                             PieChartSectionData(
                               value: totalExits.toDouble(),
                               title: 'Salidas\n$totalExits',
-                              color: AppTheme.warningColor,
+                              color: AppleColors.warningOrange,
                               radius: 80,
                               titleStyle: TextStyle(
                                 fontSize: 12,
@@ -379,9 +550,9 @@ class AdvancedStatisticsScreen extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildLegendItem('Entradas', AppTheme.successColor, totalEntries, total),
+                        _buildLegendItem('Entradas', AppleColors.successGreen, totalEntries, total),
                         const SizedBox(height: 8),
-                        _buildLegendItem('Salidas', AppTheme.warningColor, totalExits, total),
+                        _buildLegendItem('Salidas', AppleColors.warningOrange, totalExits, total),
                       ],
                     ),
                   ],
@@ -401,25 +572,15 @@ class AdvancedStatisticsScreen extends ConsumerWidget {
       const StatisticsParams(),
     ));
     
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppTheme.primaryColor.withValues(alpha: 0.2),
-          width: 1,
-        ),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Actividad por Hora del Día',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: colors.onSurface,
+            style: CupertinoTheme.of(context).textTheme.navTitleTextStyle.copyWith(
+              color: AppleColors.textPrimary(context),
             ),
           ),
           const SizedBox(height: 20),
@@ -444,7 +605,7 @@ class AdvancedStatisticsScreen extends ConsumerWidget {
                               '${value.toInt()}h',
                               style: TextStyle(
                                 fontSize: 10,
-                                color: colors.onSurface.withValues(alpha: 0.7),
+                                color: AppleColors.textSecondary(context),
                               ),
                             );
                           },
@@ -472,25 +633,15 @@ class AdvancedStatisticsScreen extends ConsumerWidget {
       const StatisticsParams(),
     ));
 
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppTheme.primaryColor.withValues(alpha: 0.2),
-          width: 1,
-        ),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Análisis de Patrones',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: colors.onSurface,
+            style: CupertinoTheme.of(context).textTheme.navTitleTextStyle.copyWith(
+              color: AppleColors.textPrimary(context),
             ),
           ),
           const SizedBox(height: 20),

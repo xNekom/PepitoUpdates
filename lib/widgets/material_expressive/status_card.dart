@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'cat_paw_icon.dart';
-import '../generated/app_localizations.dart';
-import '../models/pepito_activity.dart';
-import '../utils/date_utils.dart';
-import '../utils/theme_utils.dart';
+import '../cat_paw_icon.dart';
+import '../../generated/app_localizations.dart';
+import '../../models/pepito_activity.dart';
+import '../../utils/date_utils.dart';
+import '../../utils/theme_utils.dart';
 
 class StatusCard extends StatelessWidget {
   final PepitoStatus status;

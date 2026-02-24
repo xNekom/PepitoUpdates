@@ -16,6 +16,9 @@ class SupabaseConfig {
   static const String sessionsTable = 'user_sessions';
   static const String auditLogsTable = 'audit_logs';
   
+  // Configuración de Storage
+  static const String imagesBucket = 'pepito_images';
+  
   // Configuración de Edge Functions
   static const String pepitoProxyFunction = 'pepito-proxy';
   static const String authFunction = 'auth-handler';

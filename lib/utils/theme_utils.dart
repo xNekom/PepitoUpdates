@@ -1281,6 +1281,68 @@ class AppTheme {
       ),
     );
   }
+
+  // Liquid Glass Themes - Para iOS y macOS con Material Design
+  static ThemeData get liquidGlassLightTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: primaryOrange,
+        brightness: Brightness.light,
+        surface: backgroundLight.withValues(alpha: 0.95),
+        surfaceContainer: backgroundLight.withValues(alpha: 0.9),
+      ),
+      scaffoldBackgroundColor: Colors.transparent, // Para permitir el fondo con círculos
+      appBarTheme: AppBarTheme(
+        backgroundColor: backgroundLight.withValues(alpha: 0.8),
+        foregroundColor: neutralGray900,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+      ),
+      cardColor: backgroundLight.withValues(alpha: 0.8), 
+      dialogTheme: DialogThemeData(backgroundColor: backgroundLight.withValues(alpha: 0.9)),
+      // Importante: Sincronizar tema Cupertino
+      cupertinoOverrideTheme: const CupertinoThemeData(
+        brightness: Brightness.light,
+        primaryColor: primaryOrange,
+      ),
+    );
+  }
+
+  static ThemeData get liquidGlassDarkTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: primaryOrange,
+        brightness: Brightness.dark,
+        surface: backgroundDark.withValues(alpha: 0.95),
+        surfaceContainer: backgroundDark.withValues(alpha: 0.9),
+      ),
+      scaffoldBackgroundColor: Colors.transparent, // Para permitir el fondo con círculos
+      appBarTheme: AppBarTheme(
+        backgroundColor: backgroundDark.withValues(alpha: 0.8),
+        foregroundColor: Colors.white,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+      ),
+      cardColor: backgroundDark.withValues(alpha: 0.8), 
+      dialogTheme: DialogThemeData(backgroundColor: backgroundDark.withValues(alpha: 0.9)),
+      // Importante: Sincronizar tema Cupertino
+      cupertinoOverrideTheme: const CupertinoThemeData(
+        brightness: Brightness.dark,
+        primaryColor: primaryOrange,
+        barBackgroundColor: Color(0xCC1C1C1E),
+        scaffoldBackgroundColor: Color(0x00000000), // Transparent scaffold
+        textTheme: CupertinoTextThemeData(
+          primaryColor: primaryOrange,
+          textStyle: TextStyle(color: Colors.white),
+          navTitleTextStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 17),
+        ),
+      ),
+    );
+  }
   
   // Obtener el tema según la plataforma
   static ThemeData getPlatformTheme(Brightness brightness) {
