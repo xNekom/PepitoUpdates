@@ -9,8 +9,8 @@ class FrostedPanel extends StatelessWidget {
   final EdgeInsets? padding;
   final BorderRadius? borderRadius;
   final bool showBorder;
-  /// If true, the background will be completely transparent (only blur effect)
   final bool fullyTransparent;
+  final EdgeInsets? margin;
 
   const FrostedPanel({
     super.key,
@@ -21,6 +21,7 @@ class FrostedPanel extends StatelessWidget {
     this.borderRadius,
     this.showBorder = true,
     this.fullyTransparent = false,
+    this.margin,
   });
 
   @override
@@ -30,10 +31,8 @@ class FrostedPanel extends StatelessWidget {
         ? CupertinoColors.black.withValues(alpha: 0.3)
         : CupertinoColors.white.withValues(alpha: 0.3);
 
-    final radius = borderRadius ?? BorderRadius.circular(0);
-    
-    // If fullyTransparent is true, use completely transparent color
-    // Otherwise, use the provided backgroundColor or default themed color
+    final radius = borderRadius ?? BorderRadius.circular(12);
+
     final Color effectiveColor;
     if (fullyTransparent || backgroundColor == Colors.transparent) {
       effectiveColor = Colors.transparent;
@@ -42,13 +41,12 @@ class FrostedPanel extends StatelessWidget {
     } else {
       effectiveColor = defaultBgColor;
     }
-    
-    // Border color based on theme
+
     final borderColor = (brightness == Brightness.dark
         ? CupertinoColors.white
-        : CupertinoColors.black).withValues(alpha: 0.15);
+        : CupertinoColors.black).withValues(alpha: 0.12);
 
-    return ClipRRect(
+    Widget panel = ClipRRect(
       borderRadius: radius,
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: blurIntensity, sigmaY: blurIntensity),
@@ -66,5 +64,11 @@ class FrostedPanel extends StatelessWidget {
         ),
       ),
     );
+
+    if (margin != null) {
+      panel = Container(margin: margin, child: panel);
+    }
+
+    return panel;
   }
 }

@@ -1283,9 +1283,17 @@ class AppTheme {
     );
   }
   
-  // Obtener el tema (siempre premium Liquid Glass)
   static ThemeData getPlatformTheme(Brightness brightness) {
     return brightness == Brightness.light ? liquidGlassLightTheme : liquidGlassDarkTheme;
+  }
+
+  static ThemeData liquidGlassThemeFor(Brightness brightness) {
+    final base = brightness == Brightness.light ? liquidGlassLightTheme : liquidGlassDarkTheme;
+    return base.copyWith(
+      textTheme: brightness == Brightness.light
+          ? PremiumTypography.getLightTextTheme()
+          : PremiumTypography.getDarkTextTheme(),
+    );
   }
 
   // Colores de estado para actividades

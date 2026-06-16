@@ -38,3 +38,7 @@
 
 # Keep model classes for JSON serialization
 -keep class com.pepito.app.models.** { *; }
+
+# Play Core (needed by Flutter's PlayStoreDeferredComponentManager)
+-dontwarn com.google.android.play.core.**
+-keep class com.google.android.play.core.** { *; }

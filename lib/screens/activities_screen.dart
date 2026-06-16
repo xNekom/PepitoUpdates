@@ -11,6 +11,7 @@ import '../generated/app_localizations.dart';
 import '../widgets/liquid_glass/liquid_app_bar.dart';
 import '../widgets/liquid_glass/circles_background.dart';
 import '../theme/liquid_glass/glass_effects.dart';
+import '../widgets/adaptive/adaptive_skeleton.dart';
 
 class ActivitiesScreen extends ConsumerStatefulWidget {
   const ActivitiesScreen({super.key});
@@ -171,23 +172,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
   Widget _buildFluentScaffold(ColorScheme colorScheme) {
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.activities),
-        backgroundColor: colorScheme.surface,
-        foregroundColor: colorScheme.onSurface,
-        elevation: 1,
-        actions: [
-          IconButton(
-            onPressed: _showFilterDialog,
-            icon: const Icon(Icons.filter_list),
-          ),
-          IconButton(
-            onPressed: _loadInitialData,
-            icon: const Icon(Icons.refresh),
-          ),
-        ],
-      ),
-      body: _buildContentScroller(colorScheme),
+      body: _buildFluentContentScroller(colorScheme),
       floatingActionButton: _buildScrollToTopFab(),
     );
   }
@@ -200,10 +185,45 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
         _buildFilterSection(),
         _buildActivitiesList(),
         if (_isLoadingMore)
-          const SliverToBoxAdapter(
+          SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Center(child: CircularProgressIndicator()),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: List.generate(
+                  3,
+                  (index) => const Padding(
+                    padding: EdgeInsets.only(bottom: 12),
+                    child: AdaptiveSkeleton(height: 80, borderRadius: 12),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+      ],
+    );
+  }
+
+  Widget _buildFluentContentScroller(ColorScheme colorScheme) {
+    return CustomScrollView(
+      controller: _scrollController,
+      slivers: [
+        _buildFluentActionsBar(colorScheme),
+        _buildFilterSection(),
+        _buildActivitiesList(),
+        if (_isLoadingMore)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: List.generate(
+                  3,
+                  (index) => const Padding(
+                    padding: EdgeInsets.only(bottom: 12),
+                    child: AdaptiveSkeleton(height: 80, borderRadius: 12),
+                  ),
+                ),
+              ),
             ),
           ),
         const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
@@ -255,6 +275,49 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildFluentActionsBar(ColorScheme colorScheme) {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Consumer(
+              builder: (context, ref, child) {
+                final filter = ref.watch(activityFilterProvider);
+                return Stack(
+                  children: [
+                    IconButton(
+                      onPressed: _showFilterDialog,
+                      icon: const Icon(Icons.filter_list),
+                    ),
+                    if (filter.hasActiveFilters)
+                      Positioned(
+                        right: 4,
+                        top: 4,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: AppTheme.warningColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+            IconButton(
+              onPressed: _loadInitialData,
+              icon: const Icon(Icons.refresh),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -413,6 +476,20 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
   Widget _buildActivitiesList() {
     if (_allActivities.isEmpty && !_isLoadingMore) {
       return SliverFillRemaining(child: _buildEmptyState());
+    }
+
+    if (_allActivities.isEmpty && _isLoadingMore) {
+      return SliverToBoxAdapter(
+        child: Column(
+          children: List.generate(
+            5,
+            (index) => const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              child: AdaptiveSkeleton(height: 80, borderRadius: 12),
+            ),
+          ),
+        ),
+      );
     }
 
     return SliverList(

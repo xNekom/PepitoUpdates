@@ -4,6 +4,7 @@ import '../../generated/app_localizations.dart';
 import '../../models/pepito_activity.dart';
 import '../../utils/date_utils.dart';
 import '../../utils/theme_utils.dart';
+import '../adaptive/adaptive_skeleton.dart';
 
 class StatusCard extends StatelessWidget {
   final PepitoStatus status;
@@ -93,15 +94,12 @@ class StatusCard extends StatelessWidget {
           IconButton(
             onPressed: isLoading ? null : onRefresh,
             icon: isLoading
-                ? SizedBox(
+                ? const SizedBox(
                     width: 20,
                     height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
+                    child: AdaptiveSkeleton(borderRadius: 10),
                   )
-                : Icon(Icons.refresh, color: Colors.white),
+                : const Icon(Icons.refresh, color: Colors.white),
           ),
       ],
     );

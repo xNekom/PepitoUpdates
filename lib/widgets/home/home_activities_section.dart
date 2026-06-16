@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../widgets/adaptive/adaptive_activity_card.dart';
+import '../../widgets/adaptive/adaptive_skeleton.dart';
 import '../../widgets/material_expressive/animated_svg_widget.dart';
 import '../../utils/theme_utils.dart';
 import '../../providers/pepito_providers.dart';
@@ -123,13 +124,9 @@ class LoadingActivities extends StatelessWidget {
     return Column(
       children: List.generate(
         3,
-        (index) => Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: Container(
-            height: 80,
-            padding: const EdgeInsets.all(16),
-            child: const Center(child: CircularProgressIndicator()),
-          ),
+        (index) => const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          child: AdaptiveSkeleton(height: 80, borderRadius: 12),
         ),
       ),
     );

@@ -4,6 +4,7 @@ import '../../models/pepito_activity.dart';
 import '../../widgets/material_expressive/status_card.dart' as m3_status;
 import '../../widgets/material_expressive/activity_card.dart' as m3_activity;
 import '../../widgets/material_expressive/statistics_widgets.dart' as m3_stats;
+import '../../widgets/adaptive/adaptive_skeleton.dart';
 import '../../providers/pepito_providers.dart';
 import '../../generated/app_localizations.dart';
 import 'home_status_section.dart';
@@ -47,7 +48,7 @@ class Material3QuickStats extends ConsumerWidget {
 
     return allActivitiesAsync.when(
       data: (activities) => Material3QuickStatsRow(activities: activities),
-      loading: () => const CircularProgressIndicator(),
+      loading: () => const AdaptiveStatsRowSkeleton(),
       error: (error, stack) => Text('Error: $error'),
     );
   }
@@ -136,7 +137,10 @@ class Material3RecentActivities extends ConsumerWidget {
               ),
         ],
       ),
-      loading: () => const CircularProgressIndicator(),
+      loading: () => const Padding(
+        padding: EdgeInsets.all(16),
+        child: AdaptiveCardSkeleton(height: 300),
+      ),
       error: (error, stack) => Text('Error: $error'),
     );
   }

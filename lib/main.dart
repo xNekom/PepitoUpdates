@@ -117,22 +117,28 @@ class PepitoApp extends ConsumerWidget {
       themeMode = ThemeMode.system;
     }
 
+    final effectiveLocale = platformStyle == WidgetStyle.fluentDesign
+        ? const Locale('en', 'US')
+        : locale;
+
     Widget app = MaterialApp(
       title: 'Pépito Updates',
       debugShowCheckedModeBanner: kDebugMode,
       themeMode: themeMode,
       theme: materialTheme,
       darkTheme: materialDarkTheme,
-      locale: locale,
+      locale: effectiveLocale,
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
+        fluent.FluentLocalizations.delegate,
       ],
       supportedLocales: const [
         Locale('es', ''),
         Locale('en', ''),
+        Locale('en', 'US'),
       ],
       home: const HomeScreen(),
     );

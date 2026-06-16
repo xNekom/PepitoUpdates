@@ -9,6 +9,8 @@ import '../utils/theme_utils.dart';
 import '../generated/app_localizations.dart';
 import '../services/localization_service.dart';
 import '../widgets/adaptive/adaptive_system_status_widget.dart';
+import '../widgets/adaptive/adaptive_dialog.dart';
+import '../widgets/adaptive/adaptive_snackbar.dart';
 import '../widgets/liquid_glass/components/glass_card.dart';
 import '../widgets/liquid_glass/components/frosted_panel.dart';
 import '../widgets/liquid_glass/components/liquid_glass_switch.dart';
@@ -72,7 +74,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       backgroundColor: Colors.transparent,
       body: CustomScrollView(
         slivers: [
-          LiquidAppBar(title: AppLocalizations.of(context)!.settings),
+          LiquidLargeTitleAppBar(title: AppLocalizations.of(context)!.settings),
           SliverList(
             delegate: SliverChildListDelegate([
               const SizedBox(height: 16),
@@ -565,215 +567,206 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   }
 
   void _showThemeDialog(AppThemeMode currentMode) {
-    showDialog(
+    AdaptiveDialog.show(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.selectTheme),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            RadioListTile<AppThemeMode>(
-              title: Text(AppLocalizations.of(context)!.light),
-              value: AppThemeMode.light,
-              groupValue: currentMode,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(themeProvider.notifier).setThemeMode(value);
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-            RadioListTile<AppThemeMode>(
-              title: Text(AppLocalizations.of(context)!.dark),
-              value: AppThemeMode.dark,
-              groupValue: currentMode,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(themeProvider.notifier).setThemeMode(value);
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-            RadioListTile<AppThemeMode>(
-              title: Text(AppLocalizations.of(context)!.system),
-              value: AppThemeMode.system,
-              groupValue: currentMode,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(themeProvider.notifier).setThemeMode(value);
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-          ],
-        ),
+      ref: ref,
+      title: AppLocalizations.of(context)!.selectTheme,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          RadioListTile<AppThemeMode>(
+            title: Text(AppLocalizations.of(context)!.light),
+            value: AppThemeMode.light,
+            groupValue: currentMode,
+            onChanged: (value) {
+              if (value != null) {
+                ref.read(themeProvider.notifier).setThemeMode(value);
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+          RadioListTile<AppThemeMode>(
+            title: Text(AppLocalizations.of(context)!.dark),
+            value: AppThemeMode.dark,
+            groupValue: currentMode,
+            onChanged: (value) {
+              if (value != null) {
+                ref.read(themeProvider.notifier).setThemeMode(value);
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+          RadioListTile<AppThemeMode>(
+            title: Text(AppLocalizations.of(context)!.system),
+            value: AppThemeMode.system,
+            groupValue: currentMode,
+            onChanged: (value) {
+              if (value != null) {
+                ref.read(themeProvider.notifier).setThemeMode(value);
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+        ],
       ),
     );
   }
 
   void _showDesignInfoDialog() {
-    showDialog(
+    AdaptiveDialog.show(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.appDesign),
-        content: Text(
-          AppLocalizations.of(context)!.appDesignDescription,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.understood),
-          ),
-        ],
+      ref: ref,
+      title: AppLocalizations.of(context)!.appDesign,
+      content: Text(
+        AppLocalizations.of(context)!.appDesignDescription,
       ),
+      actions: [
+        AdaptiveAction(
+          label: AppLocalizations.of(context)!.understood,
+          isDefault: true,
+        ),
+      ],
     );
   }
 
   void _showVersionDialog() {
-    showDialog(
+    AdaptiveDialog.show(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.versionInformation),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('${AppLocalizations.of(context)!.version}: 1.0.0'),
-            const SizedBox(height: 8),
-            Text('${AppLocalizations.of(context)!.build}: ${AppLocalizations.of(context)!.release}'),
-            const SizedBox(height: 8),
-            const Text('Flutter: 3.8.1'),
-            const SizedBox(height: 8),
-            const Text('Dart: 3.0.0'),
-            const SizedBox(height: 16),
-            Text(
-              AppLocalizations.of(context)!.applicationToMonitorPepito,
-              style: const TextStyle(fontStyle: FontStyle.italic),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.close),
+      ref: ref,
+      title: AppLocalizations.of(context)!.versionInformation,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('${AppLocalizations.of(context)!.version}: 1.0.0'),
+          const SizedBox(height: 8),
+          Text('${AppLocalizations.of(context)!.build}: ${AppLocalizations.of(context)!.release}'),
+          const SizedBox(height: 8),
+          const Text('Flutter: 3.8.1'),
+          const SizedBox(height: 8),
+          const Text('Dart: 3.0.0'),
+          const SizedBox(height: 16),
+          Text(
+            AppLocalizations.of(context)!.applicationToMonitorPepito,
+            style: const TextStyle(fontStyle: FontStyle.italic),
           ),
         ],
       ),
+      actions: [
+        AdaptiveAction(
+          label: AppLocalizations.of(context)!.close,
+          isDefault: true,
+        ),
+      ],
     );
   }
 
   void _showPrivacyPolicy() {
-    showDialog(
+    AdaptiveDialog.show(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.privacyPolicy),
-        content: SingleChildScrollView(
-          child: Text(
-            '${AppLocalizations.of(context)!.privacyPolicyTitle}\n\n'
-            '${AppLocalizations.of(context)!.informationWeCollect}\n'
-            '${AppLocalizations.of(context)!.informationWeCollectDescription}\n\n'
-            '${AppLocalizations.of(context)!.useOfInformation}\n'
-            '${AppLocalizations.of(context)!.useOfInformationDescription}\n\n'
-            '${AppLocalizations.of(context)!.storage}\n'
-            '${AppLocalizations.of(context)!.storageDescription}\n\n'
-            '${AppLocalizations.of(context)!.notificationsSection}\n'
-            '${AppLocalizations.of(context)!.notificationsSectionDescription}\n\n'
-            '${AppLocalizations.of(context)!.thirdParties}\n'
-            '${AppLocalizations.of(context)!.thirdPartiesDescription}\n\n'
-            '${AppLocalizations.of(context)!.lastUpdated}',
-          ),
+      ref: ref,
+      title: AppLocalizations.of(context)!.privacyPolicy,
+      content: SingleChildScrollView(
+        child: Text(
+          '${AppLocalizations.of(context)!.privacyPolicyTitle}\n\n'
+          '${AppLocalizations.of(context)!.informationWeCollect}\n'
+          '${AppLocalizations.of(context)!.informationWeCollectDescription}\n\n'
+          '${AppLocalizations.of(context)!.useOfInformation}\n'
+          '${AppLocalizations.of(context)!.useOfInformationDescription}\n\n'
+          '${AppLocalizations.of(context)!.storage}\n'
+          '${AppLocalizations.of(context)!.storageDescription}\n\n'
+          '${AppLocalizations.of(context)!.notificationsSection}\n'
+          '${AppLocalizations.of(context)!.notificationsSectionDescription}\n\n'
+          '${AppLocalizations.of(context)!.thirdParties}\n'
+          '${AppLocalizations.of(context)!.thirdPartiesDescription}\n\n'
+          '${AppLocalizations.of(context)!.lastUpdated}',
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.close),
-          ),
-        ],
       ),
+      actions: [
+        AdaptiveAction(
+          label: AppLocalizations.of(context)!.close,
+          isDefault: true,
+        ),
+      ],
     );
   }
 
   void _showTermsOfService() {
-    showDialog(
+    AdaptiveDialog.show(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.termsOfServiceFull),
-        content: SingleChildScrollView(
-          child: Text(
-            '${AppLocalizations.of(context)!.termsOfServiceTitle}\n\n'
-            '${AppLocalizations.of(context)!.acceptance}\n'
-            '${AppLocalizations.of(context)!.acceptanceDescription}\n\n'
-            '${AppLocalizations.of(context)!.permittedUse}\n'
-            '${AppLocalizations.of(context)!.permittedUseDescription}\n\n'
-            '${AppLocalizations.of(context)!.availability}\n'
-            '${AppLocalizations.of(context)!.availabilityDescription}\n\n'
-            '${AppLocalizations.of(context)!.responsibility}\n'
-            '${AppLocalizations.of(context)!.responsibilityDescription}\n\n'
-            '${AppLocalizations.of(context)!.modifications}\n'
-            '${AppLocalizations.of(context)!.modificationsDescription}\n\n'
-            '${AppLocalizations.of(context)!.lastUpdated}',
-          ),
+      ref: ref,
+      title: AppLocalizations.of(context)!.termsOfServiceFull,
+      content: SingleChildScrollView(
+        child: Text(
+          '${AppLocalizations.of(context)!.termsOfServiceTitle}\n\n'
+          '${AppLocalizations.of(context)!.acceptance}\n'
+          '${AppLocalizations.of(context)!.acceptanceDescription}\n\n'
+          '${AppLocalizations.of(context)!.permittedUse}\n'
+          '${AppLocalizations.of(context)!.permittedUseDescription}\n\n'
+          '${AppLocalizations.of(context)!.availability}\n'
+          '${AppLocalizations.of(context)!.availabilityDescription}\n\n'
+          '${AppLocalizations.of(context)!.responsibility}\n'
+          '${AppLocalizations.of(context)!.responsibilityDescription}\n\n'
+          '${AppLocalizations.of(context)!.modifications}\n'
+          '${AppLocalizations.of(context)!.modificationsDescription}\n\n'
+          '${AppLocalizations.of(context)!.lastUpdated}',
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.close),
-          ),
-        ],
       ),
+      actions: [
+        AdaptiveAction(
+          label: AppLocalizations.of(context)!.close,
+          isDefault: true,
+        ),
+      ],
     );
   }
 
   void _showContactDialog() {
-    showDialog(
+    AdaptiveDialog.show(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.contact),
-        content: Text(
-          AppLocalizations.of(context)!.contactDescription,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.close),
-          ),
-        ],
+      ref: ref,
+      title: AppLocalizations.of(context)!.contact,
+      content: Text(
+        AppLocalizations.of(context)!.contactDescription,
       ),
+      actions: [
+        AdaptiveAction(
+          label: AppLocalizations.of(context)!.close,
+          isDefault: true,
+        ),
+      ],
     );
   }
 
   void _openSourceCode() {
-    // En una implementación real, esto abriría el navegador
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppLocalizations.of(context)!.openingGitHub),
-      ),
+    AdaptiveSnackbar.show(
+      context: context,
+      ref: ref,
+      message: AppLocalizations.of(context)!.openingGitHub,
     );
   }
 
   Future<void> _refreshAllData() async {
     try {
-      // Refrescar todos los providers para forzar actualización
       await ref.read(pepitoStatusProvider.notifier).refresh();
       ref.invalidate(todayActivitiesProvider);
       ref.invalidate(activitiesProvider);
       ref.invalidate(statisticsProvider);
       
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.dataUpdated),
-            backgroundColor: AppTheme.successColor,
-          ),
+        AdaptiveSnackbar.show(
+          context: context,
+          ref: ref,
+          message: AppLocalizations.of(context)!.dataUpdated,
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${AppLocalizations.of(context)!.errorUpdating}: $e'),
-            backgroundColor: AppTheme.errorColor,
-          ),
+        AdaptiveSnackbar.show(
+          context: context,
+          ref: ref,
+          message: '${AppLocalizations.of(context)!.errorUpdating}: $e',
+          isError: true,
         );
       }
     }
@@ -781,70 +774,65 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
 
   Future<void> _exportData() async {
     try {
-      // En una implementación real, esto exportaría los datos
       await Future.delayed(const Duration(seconds: 2));
       
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.dataExported),
-            backgroundColor: AppTheme.successColor,
-          ),
+        AdaptiveSnackbar.show(
+          context: context,
+          ref: ref,
+          message: AppLocalizations.of(context)!.dataExported,
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${AppLocalizations.of(context)!.exportError}: $e'),
-            backgroundColor: AppTheme.errorColor,
-          ),
+        AdaptiveSnackbar.show(
+          context: context,
+          ref: ref,
+          message: '${AppLocalizations.of(context)!.exportError}: $e',
+          isError: true,
         );
       }
     }
   }
 
-
-
   void _showLanguageDialog(Locale currentLocale) {
-    showDialog(
+    AdaptiveDialog.show(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Seleccionar idioma'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            RadioListTile<String>(
-              title: const Text('Español'),
-              value: 'es',
-              groupValue: currentLocale.languageCode,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(localeProvider.notifier).setLocale(Locale(value));
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-            RadioListTile<String>(
-              title: const Text('English'),
-              value: 'en',
-              groupValue: currentLocale.languageCode,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(localeProvider.notifier).setLocale(Locale(value));
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.cancel),
+      ref: ref,
+      title: 'Seleccionar idioma',
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          RadioListTile<String>(
+            title: const Text('Español'),
+            value: 'es',
+            groupValue: currentLocale.languageCode,
+            onChanged: (value) {
+              if (value != null) {
+                ref.read(localeProvider.notifier).setLocale(Locale(value));
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+          RadioListTile<String>(
+            title: const Text('English'),
+            value: 'en',
+            groupValue: currentLocale.languageCode,
+            onChanged: (value) {
+              if (value != null) {
+                ref.read(localeProvider.notifier).setLocale(Locale(value));
+                Navigator.of(context).pop();
+              }
+            },
           ),
         ],
       ),
+      actions: [
+        AdaptiveAction(
+          label: AppLocalizations.of(context)!.cancel,
+        ),
+      ],
     );
   }
+
 }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../generated/app_localizations.dart';
 import '../../providers/pepito_providers.dart';
 import '../../utils/theme_utils.dart';
+import '../adaptive/adaptive_skeleton.dart';
 import 'home.dart';
 
 class HomeWebSidebar extends StatelessWidget {
@@ -241,9 +242,7 @@ class HomeWebSidebar extends StatelessWidget {
                           ? SizedBox(
                               width: iconSize - 2,
                               height: iconSize - 2,
-                              child: const CircularProgressIndicator(
-                                strokeWidth: 2,
-                              ),
+                              child: AdaptiveSkeleton(borderRadius: (iconSize - 2) / 2),
                             )
                           : Icon(Icons.refresh, size: iconSize - 2),
                       tooltip: 'Actualizar',
@@ -267,9 +266,7 @@ class HomeWebSidebar extends StatelessWidget {
                         ? SizedBox(
                             width: iconSize - 4,
                             height: iconSize - 4,
-                            child: const CircularProgressIndicator(
-                              strokeWidth: 2,
-                            ),
+                            child: AdaptiveSkeleton(borderRadius: (iconSize - 4) / 2),
                           )
                         : Icon(Icons.refresh, size: iconSize - 4),
                     label: showLabels
@@ -467,15 +464,10 @@ class HomeWebAppBar extends StatelessWidget {
                           ? null
                           : () => ref.read(refreshProvider).refreshAll(),
                       icon: isLoading
-                          ? SizedBox(
+                          ? const SizedBox(
                               width: 20,
                               height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  AppTheme.primaryColor,
-                                ),
-                              ),
+                              child: AdaptiveSkeleton(borderRadius: 10),
                             )
                           : Icon(
                               Icons.refresh_rounded,

@@ -11,6 +11,7 @@ import '../widgets/material_expressive/statistics_widgets.dart' as m3_stats;
 import '../theme/liquid_glass/apple_colors.dart';
 import '../theme/liquid_glass/glass_effects.dart';
 import '../widgets/liquid_glass/liquid_app_bar.dart';
+import '../widgets/adaptive/adaptive_skeleton.dart';
 
 class AdvancedStatisticsScreen extends ConsumerWidget {
   const AdvancedStatisticsScreen({super.key});
@@ -966,14 +967,9 @@ class AdvancedStatisticsScreen extends ConsumerWidget {
     return Row(
       children: List.generate(4, (index) =>
         Expanded(
-          child: Container(
-            margin: EdgeInsets.only(right: index < 3 ? 12 : 0),
-            height: 80,
-            decoration: BoxDecoration(
-              color: Colors.grey.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Center(child: CircularProgressIndicator()),
+          child: Padding(
+            padding: EdgeInsets.only(right: index < 3 ? 12 : 0),
+            child: const AdaptiveSkeleton(height: 80, borderRadius: 12),
           ),
         ),
       ),
@@ -981,27 +977,15 @@ class AdvancedStatisticsScreen extends ConsumerWidget {
   }
 
   Widget _buildLoadingChart() {
-    return Container(
-      height: 200,
-      decoration: BoxDecoration(
-        color: Colors.grey.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: const Center(child: CircularProgressIndicator()),
-    );
+    return const AdaptiveSkeleton(height: 200, borderRadius: 12);
   }
 
   Widget _buildLoadingPattern() {
     return Column(
       children: List.generate(4, (index) =>
-        Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          height: 60,
-          decoration: BoxDecoration(
-            color: Colors.grey.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Center(child: CircularProgressIndicator()),
+        const Padding(
+          padding: EdgeInsets.only(bottom: 12),
+          child: AdaptiveSkeleton(height: 60, borderRadius: 12),
         ),
       ),
     );

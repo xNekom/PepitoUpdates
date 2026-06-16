@@ -8,7 +8,7 @@ plugins {
 android {
     namespace = "com.pepito.app.pepito_app"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.12077973"
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -32,16 +32,21 @@ android {
 
     buildTypes {
         release {
-            // Production build configuration
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("debug")
         }
         debug {
             isMinifyEnabled = false
             isDebuggable = true
         }
     }
+}
+
+dependencies {
+    implementation("com.google.android.play:app-update:2.1.0")
+    implementation("com.google.android.play:feature-delivery:2.1.0")
 }
 
 flutter {

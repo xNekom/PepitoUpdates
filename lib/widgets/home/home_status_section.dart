@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../widgets/adaptive/adaptive_status_card.dart';
+import '../../widgets/adaptive/adaptive_skeleton.dart';
 import '../../widgets/liquid_glass/statistics/liquid_statistics_card.dart';
 import '../../theme/liquid_glass/apple_colors.dart';
 import '../../models/pepito_activity.dart';
@@ -29,7 +30,7 @@ class HomeStatusSection extends ConsumerWidget {
         onRefresh: () => ref.read(refreshProvider).refreshStatus(),
         isLoading: ref.watch(loadingProvider),
       ),
-      loading: () => const LoadingStatusCard(),
+      loading: () => const AdaptiveCardSkeleton(height: 200),
       error: (error, stack) => ErrorCard(
         error: error.toString(),
         onRefresh: () => ref.read(refreshProvider).refreshAll(),
@@ -47,7 +48,7 @@ class HomeQuickStats extends ConsumerWidget {
 
     return allActivitiesAsync.when(
       data: (activities) => QuickStatsRow(activities: activities),
-      loading: () => const LoadingStatsRow(),
+      loading: () => const AdaptiveStatsRowSkeleton(),
       error: (error, stack) => const SizedBox.shrink(),
     );
   }
@@ -58,14 +59,7 @@ class LoadingStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.all(16),
-      child: Container(
-        height: 200,
-        padding: const EdgeInsets.all(20),
-        child: const Center(child: CircularProgressIndicator()),
-      ),
-    );
+    return const AdaptiveCardSkeleton(height: 200);
   }
 }
 
@@ -74,23 +68,7 @@ class LoadingStatsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: List.generate(
-          3,
-          (index) => Expanded(
-            child: Card(
-              child: Container(
-                height: 100,
-                padding: const EdgeInsets.all(16),
-                child: const Center(child: CircularProgressIndicator()),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+    return const AdaptiveStatsRowSkeleton();
   }
 }
 

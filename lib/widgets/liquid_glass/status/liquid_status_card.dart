@@ -2,9 +2,9 @@ import 'package:flutter/cupertino.dart';
 import '../../../models/pepito_activity.dart';
 import '../../../theme/liquid_glass/apple_colors.dart';
 import '../../../utils/platform_detector.dart';
+import '../../adaptive/adaptive_skeleton.dart';
 import '../components/glass_card.dart';
 
-/// Widget de tarjeta de estado con diseño Liquid Glass
 class LiquidStatusCard extends StatelessWidget {
   final PepitoStatus status;
   final VoidCallback? onRefresh;
@@ -19,6 +19,10 @@ class LiquidStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const AdaptiveCardSkeleton(height: 200);
+    }
+
     final isDesktop = PlatformDetector.isDesktop;
 
     return GlassCard(
@@ -99,7 +103,11 @@ class LiquidStatusCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(8.0),
         onPressed: isLoading ? null : onRefresh,
         child: isLoading
-            ? const CupertinoActivityIndicator()
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: AdaptiveSkeleton(borderRadius: 10),
+              )
             : Text(
                 'Actualizar',
                 style: CupertinoTheme.of(context).textTheme.textStyle.copyWith(

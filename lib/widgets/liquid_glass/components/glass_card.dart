@@ -14,6 +14,8 @@ class GlassCard extends StatefulWidget {
   final VoidCallback? onTap;
   final bool enableHover;
   final List<BoxShadow>? customShadows;
+  final double? width;
+  final double? height;
 
   const GlassCard({
     super.key,
@@ -25,6 +27,8 @@ class GlassCard extends StatefulWidget {
     this.onTap,
     this.enableHover = true,
     this.customShadows,
+    this.width,
+    this.height,
   });
 
   @override
@@ -62,7 +66,6 @@ class _GlassCardState extends State<GlassCard>
   void _handleTapDown(TapDownDetails details) {
     if (widget.onTap != null) {
       _scaleController.forward();
-      // Haptic feedback en iOS
       if (PlatformDetector.supportsHaptics) {
         HapticFeedback.lightImpact();
       }
@@ -108,6 +111,8 @@ class _GlassCardState extends State<GlassCard>
             return Transform.scale(
               scale: _scaleAnimation.value,
               child: Container(
+                width: widget.width,
+                height: widget.height,
                 decoration: BoxDecoration(
                   borderRadius: borderRadius,
                   boxShadow: widget.customShadows ?? GlassEffects.glassShadows(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/pepito_providers.dart';
 import '../widgets/adaptive/adaptive_statistics_card.dart';
+import '../widgets/adaptive/adaptive_skeleton.dart';
 import '../widgets/liquid_glass/statistics/liquid_activity_chart.dart';
 import '../widgets/cat_paw_icon.dart';
 import '../utils/theme_utils.dart';
@@ -1048,13 +1049,9 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
   }
 
   Widget _buildSkeletonCard(double height) {
-    return Container(
+    return AdaptiveSkeleton(
       height: height > 0 ? height : null,
-      decoration: BoxDecoration(
-        color: Colors.grey.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: const Center(child: CircularProgressIndicator()),
+      borderRadius: 16,
     );
   }
 

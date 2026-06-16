@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/adaptive/adaptive_activity_card.dart';
+import '../../widgets/adaptive/adaptive_skeleton.dart';
 import '../../utils/theme_utils.dart';
 import '../../utils/supabase_cleanup.dart';
 import '../../generated/app_localizations.dart';
@@ -81,11 +82,15 @@ Future<void> clearSupabaseData(BuildContext context) async {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const AlertDialog(
-        content: Column(
+      builder: (context) => AlertDialog(
+        content: const Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(),
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: AdaptiveSkeleton(borderRadius: 20),
+            ),
             SizedBox(height: 16),
             Text('Limpiando Supabase...'),
           ],

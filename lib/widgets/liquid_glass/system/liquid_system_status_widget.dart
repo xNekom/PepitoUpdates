@@ -1,11 +1,13 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:ui';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../providers/hybrid_pepito_provider.dart';
 import '../../../providers/pepito_providers.dart';
 import '../../../theme/liquid_glass/glass_effects.dart';
 import '../../../theme/liquid_glass/apple_colors.dart';
 import '../../../utils/platform_detector.dart';
+import '../../adaptive/adaptive_skeleton.dart';
+import '../../adaptive/adaptive_dialog.dart';
 import '../components/glass_card.dart';
 import '../components/apple_pressable.dart';
 
@@ -58,12 +60,7 @@ class LiquidSystemStatusWidget extends ConsumerWidget {
   }
 
   Widget _buildLoading(BuildContext context) {
-    return GlassCard(
-      accentColor: CupertinoColors.systemGrey,
-      child: const Center(
-        child: CupertinoActivityIndicator(),
-      ),
-    );
+    return const AdaptiveCardSkeleton();
   }
 
   Widget _buildError(BuildContext context, Object error) {
@@ -214,19 +211,10 @@ class LiquidSystemStatusWidget extends ConsumerWidget {
   }
 
   void _refresh(BuildContext context) {
-    // Implementar lógica de refresh
-    showCupertinoDialog(
+    AdaptiveDialog.show(
       context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text('Actualizando...'),
-        content: const Text('Obteniendo el estado más reciente.'),
-        actions: [
-          CupertinoDialogAction(
-            child: const Text('OK'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
-      ),
+      title: 'Actualizando...',
+      content: const Text('Obteniendo el estado más reciente.'),
     );
   }
 
@@ -262,20 +250,6 @@ class LiquidSystemStatusWidget extends ConsumerWidget {
     );
   }
 
-  String _formatLastUpdate(DateTime lastUpdate) {
-    final now = DateTime.now();
-    final difference = now.difference(lastUpdate);
-
-    if (difference.inMinutes < 1) {
-      return 'ahora';
-    } else if (difference.inHours < 1) {
-      return 'hace ${difference.inMinutes}m';
-    } else if (difference.inDays < 1) {
-      return 'hace ${difference.inHours}h';
-    } else {
-      return 'hace ${difference.inDays}d';
-    }
-  }
 }
 
 /// Widget compacto para mostrar estado
@@ -341,12 +315,7 @@ class CompactLiquidSystemStatus extends ConsumerWidget {
   }
 
   Widget _buildCompactLoading(BuildContext context) {
-    return GlassCard(
-      accentColor: CupertinoColors.systemGrey,
-      child: const Center(
-        child: CupertinoActivityIndicator(),
-      ),
-    );
+    return const AdaptiveSkeleton(height: 50, borderRadius: 12);
   }
 
   Widget _buildCompactError(BuildContext context, Object error) {

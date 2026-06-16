@@ -1,12 +1,14 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
-import 'dart:async';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/home/home.dart';
 import '../widgets/liquid_glass/circles_background.dart';
 import '../widgets/liquid_glass/liquid_app_bar.dart';
+import '../widgets/liquid_glass/liquid_bubbles_transition.dart';
 import '../utils/theme_utils.dart';
 import '../generated/app_localizations.dart';
 import '../providers/pepito_providers.dart';
@@ -27,15 +29,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   late RefreshController _refreshController;
   late ScrollController _scrollController;
 
+
   bool _isNavbarCollapsed = false;
 
   AnimationController? _bubbleAnimationController;
   Animation<double>? _bubbleAnimation;
 
-
+  final GlobalKey<LiquidBubblesTransitionState> _bubblesKey = GlobalKey();
 
   void _handleDatabaseError() {
-    if (kDebugMode) print('DEBUG: Verificando estructura de datos...');
+    if (kDebugMode) {
+      // Silent in debug, handled by providers
+    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -55,6 +60,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     _tabController.addListener(_onTabChanged);
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
+
 
     _bubbleAnimationController = AnimationController(
       duration: const Duration(milliseconds: 400),
@@ -84,6 +90,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     _scrollController.dispose();
+
     _bubbleAnimationController?.dispose();
     super.dispose();
   }
@@ -92,6 +99,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     if (mounted) {
       _bubbleAnimationController?.reset();
       _bubbleAnimationController?.forward();
+
+      _bubblesKey.currentState?.startAnimation();
 
       setState(() {});
     }
@@ -139,80 +148,95 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       backgroundColor: Colors.transparent,
       extendBody: true,
       extendBodyBehindAppBar: true,
-      body: Stack(
-        children: [
-          const CirclesBackground(),
-          NotificationListener<UserScrollNotification>(
-            onNotification: (notification) {
-              if (notification.direction == ScrollDirection.reverse) {
-                if (!_isNavbarCollapsed) {
-                  setState(() => _isNavbarCollapsed = true);
-                }
-              } else if (notification.direction == ScrollDirection.forward) {
-                if (_isNavbarCollapsed) {
-                  setState(() => _isNavbarCollapsed = false);
-                }
-              }
-              return true;
-            },
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildLiquidGlassHomeTab(),
-                const ActivitiesScreen(),
-                const AdvancedStatisticsScreen(),
-                const SettingsScreen(),
-              ],
+      body: LiquidBubblesTransition(
+        key: _bubblesKey,
+        child: Stack(
+          children: [
+            CirclesBackground(
+              scrollController: _scrollController,
             ),
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: HomeLiquidGlassBottomNavigationBar(
-              tabController: _tabController,
-              colors: colors,
-              isNavbarCollapsed: _isNavbarCollapsed,
-              bubbleAnimation: _bubbleAnimation,
+            NotificationListener<UserScrollNotification>(
+              onNotification: (notification) {
+                if (notification.direction == ScrollDirection.reverse) {
+                  if (!_isNavbarCollapsed) {
+                    setState(() => _isNavbarCollapsed = true);
+                  }
+                } else if (notification.direction == ScrollDirection.forward) {
+                  if (_isNavbarCollapsed) {
+                    setState(() => _isNavbarCollapsed = false);
+                  }
+                }
+                return true;
+              },
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildLiquidGlassHomeTab(),
+                  const ActivitiesScreen(),
+                  const AdvancedStatisticsScreen(),
+                  const SettingsScreen(),
+                ],
+              ),
             ),
-          ),
-        ],
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: HomeLiquidGlassBottomNavigationBar(
+                tabController: _tabController,
+                colors: colors,
+                isNavbarCollapsed: _isNavbarCollapsed,
+                bubbleAnimation: _bubbleAnimation,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildFluentUI(BuildContext context) {
-    return fluent.NavigationView(
-      pane: fluent.NavigationPane(
-        selected: _tabController.index,
-        onChanged: (index) {
-          setState(() {
-            _tabController.animateTo(index);
-          });
-        },
-        displayMode: fluent.PaneDisplayMode.top,
-        items: [
-          fluent.PaneItem(
-            icon: const Icon(fluent.FluentIcons.home),
-            title: Text(AppLocalizations.of(context)!.home),
-            body: _buildHomeTab(),
-          ),
-          fluent.PaneItem(
-            icon: const Icon(fluent.FluentIcons.timeline),
-            title: Text(AppLocalizations.of(context)!.activitiesTab),
-            body: const ActivitiesScreen(),
-          ),
-          fluent.PaneItem(
-            icon: const Icon(fluent.FluentIcons.chart),
-            title: Text(AppLocalizations.of(context)!.statistics),
-            body: const AdvancedStatisticsScreen(),
-          ),
-          fluent.PaneItem(
-            icon: const Icon(fluent.FluentIcons.settings),
-            title: Text(AppLocalizations.of(context)!.settings),
-            body: const SettingsScreen(),
-          ),
-        ],
+    return Localizations(
+      locale: const Locale('en', 'US'),
+      delegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        fluent.FluentLocalizations.delegate,
+      ],
+      child: fluent.NavigationView(
+        pane: fluent.NavigationPane(
+          selected: _tabController.index,
+          onChanged: (index) {
+            setState(() {
+              _tabController.animateTo(index);
+            });
+          },
+          displayMode: fluent.PaneDisplayMode.top,
+          items: [
+            fluent.PaneItem(
+              icon: const Icon(fluent.FluentIcons.home),
+              title: Text(AppLocalizations.of(context)!.home),
+              body: _buildHomeTab(),
+            ),
+            fluent.PaneItem(
+              icon: const Icon(fluent.FluentIcons.timeline),
+              title: Text(AppLocalizations.of(context)!.activitiesTab),
+              body: const ActivitiesScreen(),
+            ),
+            fluent.PaneItem(
+              icon: const Icon(fluent.FluentIcons.chart),
+              title: Text(AppLocalizations.of(context)!.statistics),
+              body: const AdvancedStatisticsScreen(),
+            ),
+            fluent.PaneItem(
+              icon: const Icon(fluent.FluentIcons.settings),
+              title: Text(AppLocalizations.of(context)!.settings),
+              body: const SettingsScreen(),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -320,39 +344,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   void _navigateToStatistics() {
     _tabController.animateTo(2);
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('📊 Estadísticas'),
-        content: const Text(
-          'Navegando a la pestaña de estadísticas donde puedes ver análisis detallados de la actividad de Pépito.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
   }
 
   void _navigateToNotifications() {
     _tabController.animateTo(3);
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('🔔 Configuración'),
-        content: const Text(
-          'Navegando a la configuración donde puedes ajustar las notificaciones y otros ajustes de la aplicación.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
   }
 }

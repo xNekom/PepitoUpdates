@@ -183,8 +183,17 @@ class PepitoStatus {
   
   // Campos derivados para compatibilidad
   bool get isHome => type.toLowerCase() == 'in';
+  bool get isOnline => isHome;
   DateTime get lastSeen => timestamp;
   String get status => isHome ? 'en_casa' : 'fuera';
+  String get lastSeenFormatted {
+    final diff = DateTime.now().difference(timestamp);
+    if (diff.inMinutes < 1) return 'Hace unos segundos';
+    if (diff.inMinutes < 60) return 'Hace ${diff.inMinutes} min';
+    if (diff.inHours < 24) return 'Hace ${diff.inHours}h';
+    if (diff.inDays < 7) return 'Hace ${diff.inDays}d';
+    return '${timestamp.day}/${timestamp.month}/${timestamp.year}';
+  }
 
   const PepitoStatus({
     required this.event,

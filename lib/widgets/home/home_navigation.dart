@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 
 import '../../generated/app_localizations.dart';
-import '../../models/pepito_activity.dart';
 import '../../theme/liquid_glass/apple_colors.dart';
+import '../../theme/liquid_glass/glass_effects.dart';
 import '../../utils/theme_utils.dart';
 
 class HomeBottomNavigationBar extends StatelessWidget {
@@ -113,8 +113,8 @@ class HomeLiquidGlassBottomNavigationBar extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
+      duration: GlassEffects.standardAnimation,
+      curve: GlassEffects.appleCurve,
       height: isNavbarCollapsed ? 70 : 90,
       child: isNavbarCollapsed
           ? Center(
@@ -129,10 +129,10 @@ class HomeLiquidGlassBottomNavigationBar extends StatelessWidget {
                       horizontal: 20,
                     ),
                     decoration: BoxDecoration(
-                      color: (isDark ? Colors.black : Colors.white).withValues(alpha: 0.2),
+                      color: (isDark ? Colors.black : Colors.white).withValues(alpha: 0.25),
                       borderRadius: BorderRadius.circular(30),
                       border: Border.all(
-                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.12),
                         width: 0.5,
                       ),
                     ),
@@ -177,7 +177,15 @@ class HomeLiquidGlassBottomNavigationBar extends StatelessWidget {
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 50.0, sigmaY: 50.0),
                 child: Container(
-                  color: (isDark ? Colors.black : Colors.white).withValues(alpha: 0.2),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      top: BorderSide(
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+                        width: 0.5,
+                      ),
+                    ),
+                    color: (isDark ? Colors.black : Colors.white).withValues(alpha: 0.3),
+                  ),
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -254,10 +262,7 @@ class HomeNavItem extends StatelessWidget {
     final inactiveColor = isDark
         ? CupertinoColors.systemGrey
         : CupertinoColors.systemGrey2;
-
-    final bubbleColor = isSelected
-        ? AppleColors.infoBlue
-        : AppleColors.getActivityColor(ActivityType.entrada);
+    final bubbleColor = AppleColors.infoBlue;
 
     return GestureDetector(
       onTap: onTap,
@@ -295,7 +300,7 @@ class HomeNavItem extends StatelessWidget {
                           offset: const Offset(0, 4),
                         ),
                         BoxShadow(
-                          color: Colors.white.withValues(alpha: 0.4),
+                          color: Colors.white.withValues(alpha: 0.3),
                           blurRadius: 15,
                           spreadRadius: -5,
                           offset: const Offset(-5, -5),
@@ -308,17 +313,31 @@ class HomeNavItem extends StatelessWidget {
             ),
 
           AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
+            duration: GlassEffects.standardAnimation,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
               color: Colors.transparent,
             ),
             constraints: const BoxConstraints(minHeight: 40, maxHeight: 48),
-            child: Icon(
-              icon,
-              color: isSelected ? Colors.white : inactiveColor,
-              size: 22,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  color: isSelected ? Colors.white : inactiveColor,
+                  size: 22,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: isSelected ? Colors.white : inactiveColor,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -348,10 +367,7 @@ class HomeCollapsedNavItem extends StatelessWidget {
     final inactiveColor = isDark
         ? CupertinoColors.systemGrey
         : CupertinoColors.systemGrey2;
-
-    final bubbleColor = isSelected
-        ? AppleColors.infoBlue
-        : AppleColors.getActivityColor(ActivityType.entrada);
+    final bubbleColor = AppleColors.infoBlue;
 
     return GestureDetector(
       onTap: onTap,
@@ -388,7 +404,7 @@ class HomeCollapsedNavItem extends StatelessWidget {
                           offset: const Offset(0, 4),
                         ),
                         BoxShadow(
-                          color: Colors.white.withValues(alpha: 0.4),
+                          color: Colors.white.withValues(alpha: 0.3),
                           blurRadius: 15,
                           spreadRadius: -5,
                           offset: const Offset(-5, -5),
@@ -401,7 +417,7 @@ class HomeCollapsedNavItem extends StatelessWidget {
             ),
 
           AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
+            duration: GlassEffects.standardAnimation,
             width: 50,
             height: 50,
             decoration: BoxDecoration(

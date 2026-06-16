@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/hybrid_pepito_provider.dart';
+import '../adaptive/adaptive_skeleton.dart';
 
 /// Widget que muestra el estado del sistema y permite cambiar el modo de operación
 class SystemStatusWidget extends ConsumerWidget {
@@ -263,15 +264,10 @@ class CompactSystemStatusWidget extends ConsumerWidget {
           ),
           if (systemStatus['isLoading']) ...[
             const SizedBox(width: 4),
-            SizedBox(
+            const SizedBox(
               width: 10,
               height: 10,
-              child: CircularProgressIndicator(
-                strokeWidth: 1.5,
-                valueColor: AlwaysStoppedAnimation(
-                  _getDataSourceColor(dataSource),
-                ),
-              ),
+              child: AdaptiveSkeleton(borderRadius: 5),
             ),
           ],
         ],

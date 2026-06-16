@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../utils/theme_utils.dart';
 import '../../providers/pepito_providers.dart';
 import '../../generated/app_localizations.dart';
+import '../../widgets/adaptive/adaptive_skeleton.dart';
 
 class HomeAppBar extends ConsumerWidget {
   const HomeAppBar({super.key});
@@ -47,10 +48,7 @@ class HomeAppBar extends ConsumerWidget {
                   ? const SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
+                      child: AdaptiveSkeleton(borderRadius: 10),
                     )
                   : const Icon(Icons.refresh, color: Colors.white),
             );

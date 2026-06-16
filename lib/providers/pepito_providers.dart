@@ -175,7 +175,7 @@ class PepitoStatusNotifier extends AsyncNotifier<PepitoStatus> {
 
     final hasChanged = _lastStatus == null ||
         _lastStatus!.type != newStatus.type ||
-        _lastStatus!.timestamp != newStatus.timestamp;
+        _lastStatus!.event != newStatus.event;
 
     if (hasChanged) {
       Logger.info('Nuevo estado detectado: ${newStatus.type} (timestamp: ${newStatus.timestamp})');
