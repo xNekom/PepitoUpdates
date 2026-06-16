@@ -1,6 +1,5 @@
 # Miscellaneous
 *.class
-*.lock
 *.log
 *.pyc
 *.swp
@@ -12,7 +11,6 @@
 .env.local
 .env.*.local
 .env.secrets
-.env.example
 supabase/.env.secrets
 supabase_credentials.md
 
@@ -135,16 +133,17 @@ tmp/
 temp/
 
 # Scripts and automation files (local development only)
-*.bat
-*.ps1
+scripts/
 automation_trigger.js
 proxy-server.js
-scripts/
 check_*.*
-switch_*.*
 deploy_*.*
-run_with_*.*
+run_*.*
+switch_*.*
 test_supabase_data.dart
+
+# Batch/PowerShell scripts - track deploy and env config, ignore local dev artifacts
+check_setup.bat
 
 # Exceptions to above rules.
 !**/ios/**/default.mode1v3
@@ -153,4 +152,10 @@ test_supabase_data.dart
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 !/dev/ci/**/Gemfile.lock
-.kilo/plans/platform-adaptive-refactor.md
+.kilo/
+.vercel
+
+# Node.js
+node_modules/
+package.json
+package-lock.json

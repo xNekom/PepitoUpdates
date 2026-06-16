@@ -2,59 +2,39 @@ name: Check Pepito Status
 
 on:
   schedule:
-    # Ejecutar cada 2 minutos
-    - cron: '*/2 * * * *'
-  workflow_dispatch: # Permitir ejecución manual
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
 
 jobs:
   check-pepito-status:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
     - name: Check Pepito Status
       run: |
-        echo "🔄 Verificando estado de Pépito..."
-
-        # URL de la Edge Function de Supabase (reemplaza con tu URL real)
+        echo "Verificando estado de Pépito..."
         EDGE_FUNCTION_URL="${{ secrets.SUPABASE_EDGE_FUNCTION_URL }}"
 
         if [ -z "$EDGE_FUNCTION_URL" ]; then
-          echo "❌ Error: SUPABASE_EDGE_FUNCTION_URL no está configurado en los secrets"
+          echo "Error: SUPABASE_EDGE_FUNCTION_URL no configurado"
           exit 1
         fi
 
-        # Hacer la petición a la Edge Function con la Service Role Key
-        response=$(curl -s -w "\n%{http_code}" \
-          -X POST \
+        response=$(curl -s --max-time 30 -w "\n%{http_code}" \
           -H "Content-Type: application/json" \
           -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
-          -H "X-From-GitHub-Actions: true" \
           "$EDGE_FUNCTION_URL")
 
-        # Extraer el código de estado HTTP (última línea)
         http_code=$(echo "$response" | tail -n1)
-        # Extraer el cuerpo de la respuesta (todo menos la última línea)
         body=$(echo "$response" | head -n -1)
 
-        echo "📡 Código de respuesta: $http_code"
-        echo "📄 Respuesta: $body"
+        echo "Código: $http_code"
 
         if [ "$http_code" -eq 200 ]; then
-          echo "✅ Estado de Pépito verificado exitosamente"
-
-          # Parsear la respuesta JSON para mostrar información útil
-          status=$(echo "$body" | jq -r '.status // "unknown"')
-          description=$(echo "$body" | jq -r '.description // "Sin descripción"')
-          inserted=$(echo "$body" | jq -r '.inserted // false')
-
-          echo "📊 Estado: $status"
-          echo "📝 Descripción: $description"
-          echo "💾 Insertado en BD: $inserted"
+          echo "Estado verificado exitosamente"
         else
-          echo "❌ Error al verificar estado de Pépito"
-          echo "🔍 Respuesta completa: $body"
+          echo "Error al verificar estado"
           exit 1
         fi

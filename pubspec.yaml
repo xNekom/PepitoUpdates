@@ -67,8 +67,13 @@ dependencies:
   fl_chart: ^1.1.1
   liquid_glass_renderer: ^0.1.1-dev.10
 
+  # Crash Reporting
+  sentry_flutter: ^8.0.0
+
 dev_dependencies:
   flutter_test:
+    sdk: flutter
+  integration_test:
     sdk: flutter
 
   # The "flutter_lints" package below contains a set of recommended lints to
