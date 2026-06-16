@@ -8,8 +8,6 @@ import '../providers/pepito_providers.dart';
 import '../utils/theme_utils.dart';
 import '../generated/app_localizations.dart';
 import '../services/localization_service.dart';
-import '../services/cache_service.dart';
-import 'cache_stats_screen.dart';
 import '../widgets/adaptive/adaptive_system_status_widget.dart';
 import '../widgets/liquid_glass/components/glass_card.dart';
 import '../widgets/liquid_glass/components/frosted_panel.dart';
@@ -238,22 +236,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               onTap: _refreshAllData,
             ),
 
-        _buildListTile(
-              title: AppLocalizations.of(context)!.clearCache,
-              subtitle: 'Liberar espacio de almacenamiento',
-              trailing: const Icon(Icons.cleaning_services),
-              onTap: _clearCache,
-            ),
-            _buildListTile(
-              title: 'Estadísticas de Cache',
-              subtitle: 'Ver métricas y rendimiento del cache',
-              trailing: const Icon(Icons.analytics),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const CacheStatsScreen(),
-                ),
-              ),
-            ),
             _buildListTile(
               title: AppLocalizations.of(context)!.exportData,
               subtitle: 'Descargar historial de actividades',
@@ -790,102 +772,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${AppLocalizations.of(context)!.errorUpdating}: $e'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _clearCache() async {
-    try {
-      // Mostrar diálogo de opciones de limpieza de cache
-      final result = await showDialog<String>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Limpiar Cache'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                title: const Text('Todo el cache'),
-                subtitle: const Text('Limpia memoria y disco'),
-                onTap: () => Navigator.of(context).pop('all'),
-              ),
-              ListTile(
-                title: const Text('Solo memoria'),
-                subtitle: const Text('Mantiene cache en disco'),
-                onTap: () => Navigator.of(context).pop('memory'),
-              ),
-              ListTile(
-                title: const Text('Solo estado'),
-                subtitle: const Text('Cache de estado de Pépito'),
-                onTap: () => Navigator.of(context).pop('status'),
-              ),
-              ListTile(
-                title: const Text('Solo imágenes'),
-                subtitle: const Text('Cache de imágenes'),
-                onTap: () => Navigator.of(context).pop('images'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancelar'),
-            ),
-          ],
-        ),
-      );
-      
-      if (result != null) {
-        await _performCacheClear(result);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${AppLocalizations.of(context)!.errorClearingCache}: $e'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
-      }
-    }
-  }
-  
-  Future<void> _performCacheClear(String type) async {
-    try {
-      // Importar el servicio de cache
-      final cacheService = CacheService.instance;
-      
-      switch (type) {
-        case 'all':
-          await cacheService.clearAllCache();
-          break;
-        case 'memory':
-          await cacheService.clearCacheByType(CacheType.memory);
-          break;
-        case 'status':
-          await cacheService.clearCacheByType(CacheType.status);
-          break;
-        case 'images':
-          await cacheService.clearCacheByType(CacheType.images);
-          break;
-      }
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.cacheCleared),
-            backgroundColor: AppTheme.successColor,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
             backgroundColor: AppTheme.errorColor,
           ),
         );

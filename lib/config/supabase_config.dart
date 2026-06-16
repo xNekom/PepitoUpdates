@@ -33,9 +33,7 @@ class SupabaseConfig {
   static const int defaultPageSize = 20;
   static const int maxPageSize = 100;
   
-  // Configuración de cache
   static const Duration cacheExpiration = Duration(minutes: 5);
-  static Duration get cacheTimeout => EnvironmentConfig.cacheTimeout;
   
   // Configuración de limpieza automática
   static const int daysToKeepActivities = 30;
@@ -45,9 +43,7 @@ class SupabaseConfig {
   static const String realtimeChannel = 'pepito_activities_channel';
   static const String securityChannel = 'security_events_channel';
   
-  // Configuración de seguridad
   static bool get enableSecurityFeatures => !EnvironmentConfig.isDevelopment;
-  static int get rateLimitPerMinute => EnvironmentConfig.rateLimitRequests;
   
   // Configuración de logs
   static bool get enableLogs => kDebugMode;
@@ -88,13 +84,10 @@ class SupabaseConfig {
     }
   }
   
-  // Obtener resumen de configuración
   static Map<String, dynamic> get configSummary => {
     'supabase_configured': isConfigured,
     'edge_functions_configured': isEdgeFunctionConfigured,
     'security_enabled': enableSecurityFeatures,
-    'rate_limit': rateLimitPerMinute,
-    'cache_timeout': cacheTimeout.inSeconds,
     'app_version': appVersion,
   };
 }

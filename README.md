@@ -4,170 +4,197 @@
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.8+-02569B?style=for-the-badge&logo=flutter&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
+![Riverpod](https://img.shields.io/badge/Riverpod-3.0+-764ABC?style=for-the-badge)
 ![Dart](https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
 
-**Monitorea a tu gato en tiempo real desde cualquier lugar del mundo 🌍**
+**Cat door monitoring app — know exactly where your cat is, in real time.**
 
-[📱 Descargar](#-instalación) • [📊 Demo](#-características) • [🤝 Contribuir](#-contribuir)
+[Documentation](#-architecture) • [Setup](#-setup) • [Scripts](#-available-scripts) • [Testing](#-testing)
 
 </div>
 
 ---
 
-## 📖 Sobre Pépito
+## 📖 About
 
-Pépito es un gato aventurero que sale y entra de casa cuando quiere. Esta aplicación te permite saber **exactamente dónde está** y **qué está haciendo** tu felino amigo en tiempo real.
-
-> *"¿Dónde está Pépito?"* - Ahora tienes la respuesta al instante ⚡
+Pépito Updates monitors your cat's comings and goings through the cat door. Built with Flutter and Riverpod for state management, backed by Supabase for database, authentication, and realtime subscriptions.
 
 ---
 
-## ✨ Características
+## 🏗️ Architecture
 
-### 🏠 Monitoreo Inteligente
-- **Estado en tiempo real**: ¿Pépito está dentro o fuera?
-- **Historial completo**: Todas las entradas y salidas registradas
-- **Notificaciones inteligentes**: Alertas cuando Pépito llega o se va
-
-### 📊 Estadísticas Avanzadas
-- **Gráficos interactivos**: Tendencia de actividad semanal
-- **Análisis por hora**: ¿Cuándo es más activo Pépito?
-- **Patrones de comportamiento**: Descubre los hábitos de tu gato
-
-### 🎨 Experiencia Premium
-- **Multiplataforma**: Android, iOS, Web, Windows, macOS, Linux
-- **Temas adaptativos**: Claro/oscuro automático
-- **Interfaz intuitiva**: Diseño moderno y responsive
-- **Multiidioma**: Español e Inglés
-
----
-
-## 🏗️ Arquitectura
-
-```mermaid
-graph TB
-    A[📱 Flutter App] --> B[🔄 Riverpod State]
-    B --> C[🌐 Supabase Client]
-    C --> D[🗄️ PostgreSQL DB]
-    C --> E[⚡ Real-time Subscriptions]
-    D --> F[🤖 Edge Functions]
-    F --> G[🔗 API Externa Pépito]
-
-    style A fill:#02569B,color:#fff
-    style D fill:#3ECF8E,color:#000
-    style F fill:#F4A261,color:#000
+```
+┌─────────────────────┐     ┌──────────────┐     ┌─────────────┐
+│  Flutter App        │────▶│  Riverpod    │────▶│  Supabase   │
+│  (Android / iOS /   │     │  State       │     │  Client     │
+│   Web / Desktop)    │     │  Management  │     │             │
+└─────────────────────┘     └──────────────┘     └──────┬──────┘
+                                                       │
+                                              ┌────────▼──────┐
+                                              │  PostgreSQL   │
+                                              │  Database     │
+                                              └────────┬──────┘
+                                                       │
+                                              ┌────────▼──────┐
+                                              │  Edge         │
+                                              │  Functions    │
+                                              │  (API Proxy)  │
+                                              └────────┬──────┘
+                                                       │
+                                              ┌────────▼──────┐
+                                              │  External     │
+                                              │  Cat Door API │
+                                              └───────────────┘
 ```
 
-### Tecnologías Core
+### Core Technologies
 
-| Componente | Tecnología | Propósito |
-|------------|------------|-----------|
-| **Frontend** | Flutter + Dart | UI multiplataforma |
-| **Backend** | Supabase | Base de datos + API |
-| **Estado** | Riverpod | Gestión reactiva |
-| **Gráficos** | FL Chart | Visualización de datos |
-| **Tiempo Real** | WebSockets | Actualizaciones live |
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **Frontend** | Flutter + Dart | Cross-platform UI |
+| **Backend** | Supabase | Database, auth, realtime |
+| **State** | Riverpod 3.x | Reactive state management |
+| **Charts** | FL Chart | Data visualization |
+| **Realtime** | Supabase Realtime + SSE | Live updates |
+| **API Proxy** | Edge Functions (Deno) | Secures external API calls |
+
+### Platform Styles
+
+The app supports multiple visual styles:
+- **Fluent Design** — Windows-native look via `fluent_ui`
+- **Material Expressive** — Web-optimized Material theme
+- **Liquid Glass** — Frosted glass aesthetic
 
 ---
 
-## 🚀 Instalación
+## 🚀 Setup
 
-### Prerrequisitos
-- Flutter 3.8+
+### Prerequisites
+
+- Flutter SDK 3.8+
 - Dart 3.0+
+- A Supabase project (free tier works)
 - Git
 
-### Pasos Rápidos
+### Quick Start
 
 ```bash
-# 1. Clona el repositorio
+# 1. Clone the repository
 git clone https://github.com/xNekom/PepitoUpdates.git
-
-# 2. Entra al directorio
 cd PepitoUpdates
 
-# 3. Instala dependencias
+# 2. Install dependencies
 flutter pub get
 
-# 4. Configura Supabase (ver SUPABASE_SETUP.md)
+# 3. Create .env from template
+cp .env.example .env
+# Edit .env with your Supabase credentials (see Environment Variables below)
 
-# 5. Ejecuta la app
-flutter run
+# 4. Run the app
+flutter run --dart-define-from-file=.env
 ```
 
-> 💡 **Tip**: Para desarrollo web, usa `flutter run -d chrome`
+### Environment Variables
+
+Credentials are passed via `--dart-define` at build time — **never hardcoded**.
+
+| Variable | Description |
+|----------|-------------|
+| `SUPABASE_URL` | Your Supabase project URL |
+| `SUPABASE_ANON_KEY` | Your Supabase anonymous key |
+| `ENVIRONMENT` | `dev`, `qa`, `uat`, or `pro` (default: `dev`) |
+
+Example:
+
+```bash
+flutter run --dart-define=SUPABASE_URL=https://yourproject.supabase.co \
+           --dart-define=SUPABASE_ANON_KEY=your-anon-key \
+           --dart-define=ENVIRONMENT=dev
+```
+
+Or using a `.env` file:
+
+```bash
+flutter run --dart-define-from-file=.env
+```
 
 ---
 
-## 📱 Uso
+## 📜 Available Scripts
 
-### Pantalla Principal
-- **Estado actual** de Pépito con indicador visual
-- **Última actividad** con timestamp
-- **Historial reciente** de movimientos
-
-### Estadísticas
-- **Gráfico semanal**: Actividad por día
-- **Gráfico horario**: Actividad por hora del día
-- **Insights inteligentes**: Patrones detectados automáticamente
-
-### Configuración
-- **Tema**: Cambia entre claro y oscuro
-- **Idioma**: Español o Inglés
-- **Notificaciones**: Personaliza las alertas
+| Script | Purpose |
+|--------|---------|
+| `switch_env.bat` / `switch_env.ps1` | Switch between dev/qa/uat/pro environments |
+| `run_with_proxy.bat` | Start local proxy server + Flutter (CORS workaround) |
+| `check_env.bat` / `check_env.ps1` | Verify environment variables are set |
+| `check_setup.bat` | Verify project setup completeness |
+| `check_supabase.bat` | Test Supabase connection |
+| `check_automation.bat` | Check Edge Function automation status |
+| `deploy_edge_functions.bat` | Deploy Edge Functions to Supabase |
 
 ---
 
-## 🎯 Casos de Uso
+## 🧪 Testing
 
-- **Dueños preocupados**: Siempre saben dónde está su gato
-- **Familias**: Compartan el estado de Pépito con todos
-- **Veterinarios**: Analicen patrones de comportamiento
-- **Cuidadores**: Monitoreen mascotas ajenas
-
----
-
-## 🤝 Contribuir
-
-¡Las contribuciones son bienvenidas! 🐱
-
-1. **Fork** el proyecto
-2. Crea tu rama: `git checkout -b feature/AmazingFeature`
-3. **Commit** tus cambios: `git commit -m 'Add AmazingFeature'`
-4. **Push** a la rama: `git push origin feature/AmazingFeature`
-5. Abre un **Pull Request**
-
-### Áreas de contribución
-- 🐛 **Bug fixes**
-- ✨ **Nuevas funcionalidades**
-- 📱 **Mejoras de UI/UX**
-- 🌍 **Nuevos idiomas**
-- 📊 **Nuevos tipos de gráficos**
+```bash
+flutter test
+```
 
 ---
 
-## 📄 Licencia
+## 🔍 Linting
 
-Este proyecto está bajo la **Licencia MIT**. Ver [`LICENSE`](LICENSE) para más detalles.
+```bash
+flutter analyze
+```
 
----
-
-## 🙏 Agradecimientos
-
-- **Pépito** por ser la inspiración 🐱
-- **Flutter** por la mejor framework multiplataforma
-- **Supabase** por el backend perfecto
-- **Comunidad Open Source** por hacer posible todo esto
+Runs the Dart analyzer across the project. All PRs must pass with **zero issues**.
 
 ---
 
-<div align="center">
+## 📁 Project Structure
 
-**Hecho con ❤️ para Pépito y todos los gatos del mundo**
+```
+lib/
+├── config/            # Environment, API, Supabase configuration
+├── models/            # Data models (PepitoActivity, User, AuthToken)
+├── providers/         # Riverpod providers + notifiers
+├── services/          # API, Supabase, SSE, localization services
+├── screens/           # UI screens (Home, Statistics, Settings, Activities)
+├── widgets/           # Reusable widgets (adaptive, cards, dialogs)
+├── utils/             # Helpers (date, logger, theme, platform)
+├── theme/             # Theme definitions per platform style
+├── middleware/        # App middleware
+├── generated/         # Code generation output
+├── l10n/              # Localization (ARB files)
+├── main.dart          # Entry point
+└── .env.example       # Environment variable template
+```
 
-⭐ **Si te gusta el proyecto, ¡dale una estrella!**
+---
 
-[🐱 Conoce más sobre Pépito](https://github.com/xNekom) • [📧 Contacto](mailto:pepito@example.com)
+## 🔄 CI/CD
 
-</div>
+| Workflow | Trigger | Description |
+|----------|---------|-------------|
+| **auto-test.yml** | PR to `main`/`develop`, push to `main` | `flutter analyze` + `flutter test` |
+| **deploy-pages.yml** | Manual dispatch | Build + deploy Flutter web to GitHub Pages |
+| **deploy-to-vercel.yml** | Push to `main`, manual | Build + deploy Flutter web to Vercel |
+
+Credentials are injected via GitHub Secrets (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `VERCEL_TOKEN`).
+
+---
+
+## 🔐 Security
+
+- All credentials are passed via `--dart-define` — **never committed to the repository**
+- `.env` is in `.gitignore`
+- Edge Functions proxy external API calls, keeping API keys server-side
+- Environment-specific configs prevent accidental production access in dev
+
+---
+
+## 📄 License
+
+MIT — see [`LICENSE`](LICENSE) for details.

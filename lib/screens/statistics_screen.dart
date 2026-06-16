@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/pepito_providers.dart';
 import '../widgets/adaptive/adaptive_statistics_card.dart';
 import '../widgets/liquid_glass/statistics/liquid_activity_chart.dart';
+import '../widgets/cat_paw_icon.dart';
 import '../utils/theme_utils.dart';
 import '../utils/date_utils.dart';
 import '../models/pepito_activity.dart';
@@ -211,7 +212,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
         return statisticsAsync.when(
           data: (statistics) => _buildOverviewContent(statistics),
-          loading: () => _buildLoadingState(),
+          loading: () => _buildSkeletonLoading(),
           error: (error, stack) => _buildErrorState(error.toString()),
         );
       },
@@ -233,7 +234,6 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // Información sobre limitaciones de datos
           if (note != null)
             Container(
               width: double.infinity,
@@ -286,58 +286,61 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                 ],
               ),
             ),
-          // Quick stats grid
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 2,
-            mainAxisSpacing: 16,
-            crossAxisSpacing: 16,
-            childAspectRatio: 1.2,
-            children: [
-              AdaptiveStatisticsCard(
-                title: AppLocalizations.of(context)!.totalActivities,
-                value: totalActivities.toString(),
-                subtitle: AppLocalizations.of(context)!.inSelectedPeriod,
-                icon: Icons.timeline,
-                color: AppTheme.primaryColor,
-              ),
-              AdaptiveStatisticsCard(
-                title: AppLocalizations.of(context)!.entries,
-                value: entryCount.toString(),
-                subtitle: totalActivities > 0
-                    ? '${((entryCount / totalActivities) * 100).toStringAsFixed(1)}${AppLocalizations.of(context)!.percentOfTotal}'
-                    : '0${AppLocalizations.of(context)!.percentOfTotal}',
-                icon: Icons.home,
-                color: AppTheme.successColor,
-              ),
-              AdaptiveStatisticsCard(
-                title: AppLocalizations.of(context)!.exits,
-                value: exitCount.toString(),
-                subtitle: totalActivities > 0
-                    ? '${((exitCount / totalActivities) * 100).toStringAsFixed(1)}${AppLocalizations.of(context)!.percentOfTotal}'
-                    : '0${AppLocalizations.of(context)!.percentOfTotal}',
-                icon: Icons.logout,
-                color: AppTheme.warningColor,
-              ),
-              AdaptiveStatisticsCard(
-                title: AppLocalizations.of(context)!.dailyAverage,
-                value: averageDaily.toStringAsFixed(1),
-                subtitle: AppLocalizations.of(context)!.activitiesPerDay,
-                icon: Icons.trending_up,
-                color: AppTheme.infoColor,
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          // Activity summary - TODO: Implement ActivitySummaryCard
-          // ActivitySummaryCard(
-          //   activities: activities,
-          //   period: _getPeriodLabel(),
-          // ),
-          const SizedBox(height: 16),
-          // Time analysis
-          _buildTimeAnalysisCard(activities),
+          if (activities.isEmpty)
+            _buildNoDataOverview()
+          else
+            Column(
+              children: [
+                GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  childAspectRatio: 1.2,
+                  children: [
+                    AdaptiveStatisticsCard(
+                      title: AppLocalizations.of(context)!.totalActivities,
+                      value: totalActivities.toString(),
+                      subtitle: AppLocalizations.of(context)!.inSelectedPeriod,
+                      icon: Icons.timeline,
+                      color: AppTheme.primaryColor,
+                    ),
+                    AdaptiveStatisticsCard(
+                      title: AppLocalizations.of(context)!.entries,
+                      value: entryCount.toString(),
+                      subtitle: totalActivities > 0
+                          ? '${((entryCount / totalActivities) * 100).toStringAsFixed(1)}${AppLocalizations.of(context)!.percentOfTotal}'
+                          : '0${AppLocalizations.of(context)!.percentOfTotal}',
+                      icon: Icons.home,
+                      color: AppTheme.successColor,
+                    ),
+                    AdaptiveStatisticsCard(
+                      title: AppLocalizations.of(context)!.exits,
+                      value: exitCount.toString(),
+                      subtitle: totalActivities > 0
+                          ? '${((exitCount / totalActivities) * 100).toStringAsFixed(1)}${AppLocalizations.of(context)!.percentOfTotal}'
+                          : '0${AppLocalizations.of(context)!.percentOfTotal}',
+                      icon: Icons.logout,
+                      color: AppTheme.warningColor,
+                    ),
+                    AdaptiveStatisticsCard(
+                      title: AppLocalizations.of(context)!.dailyAverage,
+                      value: averageDaily.toStringAsFixed(1),
+                      subtitle: AppLocalizations.of(context)!.activitiesPerDay,
+                      icon: Icons.trending_up,
+                      color: AppTheme.infoColor,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                _buildTimeAnalysisCard(activities),
+                const SizedBox(height: 16),
+                _buildProgressDistribution(entryCount, exitCount, totalActivities),
+                const SizedBox(height: 16),
+                _buildRecentActivities(activities),
+              ],
+            ),
         ],
       ),
     );
@@ -357,7 +360,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
         return statisticsAsync.when(
           data: (statistics) => _buildChartsContent(statistics),
-          loading: () => _buildLoadingState(),
+          loading: () => _buildSkeletonLoading(),
           error: (error, stack) => _buildErrorState(error.toString()),
         );
       },
@@ -367,19 +370,20 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
   Widget _buildChartsContent(Map<String, dynamic> statistics) {
     final activities = statistics['activities'] as List<PepitoActivity>? ?? [];
 
+    if (activities.isEmpty) {
+      return _buildNoDataChart();
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // Activity chart
           LiquidActivityChart(
             activities: activities,
           ),
           const SizedBox(height: 16),
-          // Hourly distribution
           _buildHourlyDistributionChart(activities),
           const SizedBox(height: 16),
-          // Weekly pattern
           if (_selectedPeriod.start
                   .difference(_selectedPeriod.end)
                   .inDays
@@ -405,7 +409,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
         return statisticsAsync.when(
           data: (statistics) => _buildInsightsContent(statistics),
-          loading: () => _buildLoadingState(),
+          loading: () => _buildSkeletonLoading(),
           error: (error, stack) => _buildErrorState(error.toString()),
         );
       },
@@ -473,6 +477,174 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildProgressDistribution(int entryCount, int exitCount, int total) {
+    if (total == 0) return const SizedBox.shrink();
+
+    final colors = AppTheme.getColors(context);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildProgressBar(
+              AppLocalizations.of(context)!.entries,
+              entryCount,
+              total,
+              AppTheme.successColor,
+              colors,
+            ),
+            const SizedBox(height: 12),
+            _buildProgressBar(
+              AppLocalizations.of(context)!.exits,
+              exitCount,
+              total,
+              AppTheme.warningColor,
+              colors,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProgressBar(
+    String label,
+    int value,
+    int total,
+    Color color,
+    AppColors colors,
+  ) {
+    final percentage = total > 0 ? (value / total) : 0.0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: colors.onSurface,
+              ),
+            ),
+            Text(
+              '$value (${(percentage * 100).round()}%)',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Container(
+          height: 8,
+          decoration: BoxDecoration(
+            color: colors.onSurface.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: FractionallySizedBox(
+            alignment: Alignment.centerLeft,
+            widthFactor: percentage,
+            child: Container(
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecentActivities(List<PepitoActivity> activities) {
+    if (activities.isEmpty) return const SizedBox.shrink();
+
+    final colors = AppTheme.getColors(context);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              AppLocalizations.of(context)!.recentActivities,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 16),
+            ...activities.take(5).map(
+              (activity) => _buildActivityItem(activity, colors),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActivityItem(PepitoActivity activity, AppColors colors) {
+    final isEntry = activity.isEntry;
+    final color = isEntry ? AppTheme.successColor : AppTheme.warningColor;
+    final icon = isEntry ? Icons.login : Icons.logout;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 16),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isEntry
+                      ? AppLocalizations.of(context)!.entry
+                      : AppLocalizations.of(context)!.exit,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: colors.onSurface,
+                  ),
+                ),
+                Text(
+                  activity.formattedTime,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: colors.onSurface.withValues(alpha: 0.7),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -773,16 +945,122 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
     );
   }
 
-  Widget _buildLoadingState() {
-    return const Center(
+  Widget _buildNoDataOverview() {
+    final colors = AppTheme.getColors(context);
+
+    return Center(
       child: Padding(
-        padding: EdgeInsets.all(32),
-        child: CircularProgressIndicator(),
+        padding: const EdgeInsets.symmetric(vertical: 48),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CatPawIcon(
+              color: colors.onSurface.withValues(alpha: 0.5),
+              size: 64,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              AppLocalizations.of(context)!.noActivitiesInPeriod,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: colors.onSurface.withValues(alpha: 0.7),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              AppLocalizations.of(context)!.pepitoActivitiesWillAppearWhenAvailable,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                color: colors.onSurface.withValues(alpha: 0.5),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
+  Widget _buildNoDataChart() {
+    final colors = AppTheme.getColors(context);
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.bar_chart,
+              color: colors.onSurface.withValues(alpha: 0.5),
+              size: 64,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              AppLocalizations.of(context)!.noDataAvailable,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: colors.onSurface.withValues(alpha: 0.7),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              AppLocalizations.of(context)!.pepitoActivitiesWillAppearWhenAvailable,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                color: colors.onSurface.withValues(alpha: 0.5),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSkeletonLoading() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          _buildSkeletonGrid(),
+          const SizedBox(height: 16),
+          _buildSkeletonCard(150),
+          const SizedBox(height: 16),
+          _buildSkeletonCard(200),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSkeletonGrid() {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      mainAxisSpacing: 16,
+      crossAxisSpacing: 16,
+      childAspectRatio: 1.2,
+      children: List.generate(4, (_) => _buildSkeletonCard(0)),
+    );
+  }
+
+  Widget _buildSkeletonCard(double height) {
+    return Container(
+      height: height > 0 ? height : null,
+      decoration: BoxDecoration(
+        color: Colors.grey.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: const Center(child: CircularProgressIndicator()),
+    );
+  }
+
   Widget _buildErrorState(String error) {
+    final colors = AppTheme.getColors(context);
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -804,9 +1082,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
               error,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.7),
+                color: colors.onSurface.withValues(alpha: 0.7),
               ),
             ),
             const SizedBox(height: 16),
@@ -820,7 +1096,6 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
     );
   }
 
-  // Helper methods
   bool _isPeriodSelected(DateRange period) {
     return AppDateUtils.isSameDay(_selectedPeriod.start, period.start) &&
         AppDateUtils.isSameDay(_selectedPeriod.end, period.end);
@@ -831,7 +1106,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
         _selectedPeriod.end.difference(_selectedPeriod.start).inDays + 1;
     return days > 0
         ? days
-        : 1; // Ensure at least 1 day to avoid division by zero
+        : 1;
   }
 
   int _getMostActiveHour(List<PepitoActivity> activities) {
@@ -998,10 +1273,11 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
   final TabBar _tabBar;
 
-  _SliverTabBarDelegate(this._tabBar);
+  const _SliverTabBarDelegate(this._tabBar);
 
   @override
   double get minExtent => _tabBar.preferredSize.height;
+
   @override
   double get maxExtent => _tabBar.preferredSize.height;
 

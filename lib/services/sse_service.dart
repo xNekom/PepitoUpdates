@@ -51,7 +51,7 @@ class SSEService {
       // Usar siempre cliente HTTP estándar para SSE con dominio
       _client = http.Client();
 
-      final url = '${ApiConfig.baseUrl}${ApiConfig.sseEndpoint}';
+      final url = '${ApiConfig.baseUrl}/sse/v1/events';
       Logger.info('Conectando a SSE: $url');
 
       final request = http.Request('GET', Uri.parse(url));

@@ -1,22 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const defaultCorsAllowedHeaders = [
-  'authorization',
-  'x-client-info',
-  'x-api-version',
-  'apikey',
-  'content-type',
-  'x-user-id',
-  'x-session-id',
-  'x-app-version',
-  'x-client-platform',
-  'x-request-id',
-  'x-cache-type',
-  'x-cache-strategy',
-  'user-agent',
-].join(', ')
-
 interface PepitoStatus {
   event: string;
   type: string;
@@ -24,177 +8,100 @@ interface PepitoStatus {
   img: string;
 }
 
-serve(async (req: Request) => {
-  const requestedHeaders = req.headers.get('access-control-request-headers')
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': requestedHeaders || defaultCorsAllowedHeaders,
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  }
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, content-type',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+}
 
-  // Handle CORS preflight requests
+function getEnv(name: string): string {
+  const val = Deno.env.get(name)
+  if (!val) throw new Error(`Missing env: ${name}`)
+  return val
+}
+
+function isAuthorized(req: Request): boolean {
+  const auth = req.headers.get('authorization') || ''
+  const token = auth.replace('Bearer ', '')
+  const serviceKey = getEnv('SUPABASE_SERVICE_ROLE_KEY')
+  return token === serviceKey
+}
+
+serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
-  try {
-    // Verificar si la petición viene de GitHub Actions
-    const userAgent = req.headers.get('user-agent') || ''
-    const githubDelivery = req.headers.get('x-github-delivery')
-    const fromGitHubActions = req.headers.get('x-from-github-actions') === 'true'
-    const isFromGitHub = userAgent.includes('GitHub') || githubDelivery !== null || fromGitHubActions
-
-    console.log('🔍 User-Agent:', userAgent)
-    console.log('🔍 GitHub Delivery:', githubDelivery)
-    console.log('🔍 From GitHub Actions:', fromGitHubActions)
-    console.log('🔍 Is from GitHub:', isFromGitHub)
-
-    // Si no viene de GitHub, verificar autenticación JWT
-    if (!isFromGitHub) {
-      const authHeader = req.headers.get('authorization')
-      if (!authHeader) {
-        return new Response(
-          JSON.stringify({ code: 401, message: 'Missing authorization header' }),
-          { 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 401
-          }
-        )
-      }
-
-      // Aquí iría la validación JWT si fuera necesaria
-      // Por ahora, solo permitimos si viene de GitHub
-    }
-
-    // Crear cliente de Supabase
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  if (!isAuthorized(req)) {
+    return new Response(
+      JSON.stringify({ code: 401, message: 'Unauthorized' }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 },
     )
+  }
 
-    console.log('🔄 Iniciando verificación del estado de Pépito...')
+  try {
+    const supabase = createClient(getEnv('SUPABASE_URL'), getEnv('SUPABASE_SERVICE_ROLE_KEY'))
 
-    // Consultar la API de Pépito
     const apiResponse = await fetch('https://api.thecatdoor.com/rest/v1/last-status', {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      signal: AbortSignal.timeout(10000) // 10 segundos timeout
+      headers: { 'Accept': 'application/json' },
+      signal: AbortSignal.timeout(15000),
     })
 
     if (!apiResponse.ok) {
-      throw new Error(`API response not ok: ${apiResponse.status}`)
+      throw new Error(`API error: ${apiResponse.status}`)
     }
 
     const pepitoStatus: PepitoStatus = await apiResponse.json()
-    console.log('📡 Estado obtenido de la API:', pepitoStatus)
-
-    // Validar timestamp de la API
     let apiTimestamp = pepitoStatus.time
     if (!apiTimestamp || apiTimestamp < 1000000000) {
-      // Si el timestamp parece inválido (año 1970), usar la hora actual
-      console.warn('⚠️ Timestamp inválido de API:', apiTimestamp, 'usando hora actual')
       apiTimestamp = Math.floor(Date.now() / 1000)
     }
 
-    // Obtener actividades recientes (últimos 5 minutos) del mismo tipo
-    const fiveMinutesAgo = Math.floor(Date.now() / 1000) - 300
-    const fiveMinutesAgoIso = new Date((fiveMinutesAgo * 1000)).toISOString()
-    
-    const { data: recentActivities, error: queryError } = await supabaseClient
+    const fiveMinAgo = new Date((Math.floor(Date.now() / 1000) - 300) * 1000).toISOString()
+    const { data: recent } = await supabase
       .from('pepito_activities')
-      .select('timestamp, type, created_at')
-      .gte('timestamp', fiveMinutesAgoIso)
+      .select('timestamp')
+      .gte('timestamp', fiveMinAgo)
       .eq('type', pepitoStatus.type)
       .order('created_at', { ascending: false })
       .limit(1)
 
-    if (queryError && queryError.code !== 'PGRST116') { // PGRST116 = no rows found
-      console.error('❌ Error consultando actividades recientes:', queryError)
-      throw queryError
-    }
-
     let shouldInsert = false
-    const now = Math.floor(Date.now() / 1000)
-
-    if (!recentActivities || recentActivities.length === 0) {
-      // No hay actividades recientes del mismo tipo, insertar
+    if (!recent || recent.length === 0) {
       shouldInsert = true
-      console.log('📝 No hay actividades recientes del mismo tipo, insertando')
     } else {
-      const lastActivity = recentActivities[0]
-      const lastActivityTime = Math.floor(new Date(lastActivity.timestamp).getTime() / 1000)
-      const timeDiff = now - lastActivityTime
-      
-      if (timeDiff > 60) {
-        // Más de 1 minuto desde la última actividad del mismo tipo, insertar
+      const lastTs = Math.floor(new Date(recent[0].timestamp).getTime() / 1000)
+      if (Math.floor(Date.now() / 1000) - lastTs > 60) {
         shouldInsert = true
-        console.log(`📝 Insertando nueva actividad: tiempo=${timeDiff}s desde la última del mismo tipo`)
-      } else {
-        console.log(`⏭️ No es necesario insertar, actividad similar hace ${timeDiff}s`)
       }
     }
 
     if (shouldInsert) {
-      // Insertar nueva actividad con la estructura correcta
-      const activityTimestamp = new Date(apiTimestamp * 1000).toISOString()
-      
-      const { data: insertData, error: insertError } = await supabaseClient
+      const { error: insertError } = await supabase
         .from('pepito_activities')
         .insert({
-          event: 'pepito', // Campo requerido
-          type: pepitoStatus.type, // 'in' o 'out'
-          timestamp: activityTimestamp, // Formato ISO para Supabase
+          event: 'pepito',
+          type: pepitoStatus.type,
+          timestamp: new Date(apiTimestamp * 1000).toISOString(),
           created_at: new Date().toISOString(),
-          description: `Pepito ${pepitoStatus.type === 'in' ? 'entró' : 'salió'}`, // Campo requerido
-          source: 'edge_function', // Campo requerido
-          metadata: {
-            api_timestamp: apiTimestamp,
-            processed_at: new Date().toISOString(),
-            automatic_check: true
-          }
+          description: `Pepito ${pepitoStatus.type === 'in' ? 'entró' : 'salió'}`,
+          source: 'edge_function',
+          metadata: { api_timestamp: apiTimestamp, automatic_check: true },
         })
-        .select()
 
-      if (insertError) {
-        console.error('❌ Error insertando actividad:', insertError)
-        throw insertError
-      }
-
-      console.log('Nueva actividad insertada:', insertData)
+      if (insertError) throw insertError
     }
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        status: pepitoStatus.type,
-        description: `Pepito ${pepitoStatus.type === 'in' ? 'entró' : 'salió'}`,
-        inserted: shouldInsert,
-        timestamp: now
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      },
+      JSON.stringify({ success: true, status: pepitoStatus.type, inserted: shouldInsert }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 },
     )
-
   } catch (error) {
-    console.error('❌ Error en Edge Function:', error)
-
-    const errorMessage = error instanceof Error ? error.message : String(error)
-
+    console.error('Error:', error)
+    const msg = error instanceof Error ? error.message : String(error)
     return new Response(
-      JSON.stringify({
-        success: false,
-        error: errorMessage,
-        timestamp: Math.floor(Date.now() / 1000)
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      },
+      JSON.stringify({ success: false, error: msg }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 },
     )
   }
 })

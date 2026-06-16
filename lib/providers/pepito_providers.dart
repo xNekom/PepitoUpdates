@@ -39,7 +39,7 @@ final platformStyleProvider = NotifierProvider<PlatformStyleNotifier, WidgetStyl
 );
 
 // Provider para el historial de actividades desde Supabase
-final supabaseHistoryProvider = FutureProvider.family<List<PepitoActivity>, SupabaseHistoryParams>(
+final supabaseHistoryProvider = FutureProvider.family.autoDispose<List<PepitoActivity>, SupabaseHistoryParams>(
   (ref, params) async {
     final supabaseService = ref.read(supabaseServiceProvider);
     return await supabaseService.getStatusHistory(
@@ -50,7 +50,7 @@ final supabaseHistoryProvider = FutureProvider.family<List<PepitoActivity>, Supa
 );
 
 // Provider para estadísticas desde Supabase
-final supabaseStatisticsProvider = FutureProvider.family<Map<String, dynamic>, SupabaseStatsParams>(
+final supabaseStatisticsProvider = FutureProvider.family.autoDispose<Map<String, dynamic>, SupabaseStatsParams>(
   (ref, params) async {
     final supabaseService = ref.read(supabaseServiceProvider);
     return await supabaseService.getActivityStatistics(
@@ -61,30 +61,29 @@ final supabaseStatisticsProvider = FutureProvider.family<Map<String, dynamic>, S
 );
 
 // Provider para actividades de hoy desde Supabase
-final supabaseTodayActivitiesProvider = FutureProvider<List<PepitoActivity>>(
+final supabaseTodayActivitiesProvider = FutureProvider.autoDispose<List<PepitoActivity>>(
   (ref) async {
     final supabaseService = ref.read(supabaseServiceProvider);
     return await supabaseService.getTodayActivities();
   },
 );
 
-// ✅ COMENTAR TEMPORALMENTE para evitar errores
-// Provider para stream de actividades en tiempo real
-// final supabaseRealtimeActivitiesProvider = StreamProvider<List<PepitoActivity>>(
-//   (ref) {
-//     final supabaseService = ref.read(supabaseServiceProvider);
-//     return supabaseService.watchRecentActivities(limit: 10);
-//   },
-// );
+// Provider para stream de actividades en tiempo real via Supabase Realtime
+final supabaseRealtimeActivitiesProvider = StreamProvider.autoDispose<List<PepitoActivity>>(
+  (ref) {
+    final supabaseService = ref.read(supabaseServiceProvider);
+    return supabaseService.watchRecentActivities(limit: 10);
+  },
+);
 
 // Provider para limpiar todas las actividades de Supabase
-final clearSupabaseActivitiesProvider = FutureProvider<bool>((ref) async {
+final clearSupabaseActivitiesProvider = FutureProvider.autoDispose<bool>((ref) async {
   final supabaseService = ref.read(supabaseServiceProvider);
   return await supabaseService.clearAllActivities();
 });
 
 // Provider para todas las actividades (sin paginación, para estadísticas)
-final allActivitiesProvider = FutureProvider<List<PepitoActivity>>((ref) async {
+final allActivitiesProvider = FutureProvider.autoDispose<List<PepitoActivity>>((ref) async {
   final supabaseService = ref.read(supabaseServiceProvider);
   return await supabaseService.getStatusHistory(
     limit: 10000, // Número grande para obtener todas
@@ -99,7 +98,7 @@ final sseServiceProvider = Provider<SSEService>((ref) {
 });
 
 // Provider para el stream de actividades en tiempo real
-final realTimeActivitiesProvider = StreamProvider<PepitoActivity>((ref) {
+final realTimeActivitiesProvider = StreamProvider.autoDispose<PepitoActivity>((ref) {
   final sseService = ref.read(sseServiceProvider);
   return sseService.activityStream;
 });
@@ -117,83 +116,94 @@ final sseConnectionProvider = NotifierProvider<SSEConnectionNotifier, bool>(() {
   return SSEConnectionNotifier();
 });
 
-// Provider para el estado actual de Pépito
-// Provider para el estado actual con polling automático
-final pepitoStatusProvider = NotifierProvider<PepitoStatusNotifier, AsyncValue<PepitoStatus>>(() {
-  return PepitoStatusNotifier();
-});
+// Provider para el estado actual de Pépito con Realtime + polling fallback
+final pepitoStatusProvider = AsyncNotifierProvider<PepitoStatusNotifier, PepitoStatus>(
+  PepitoStatusNotifier.new,
+);
 
-// Notifier que maneja el polling automático del estado
-class PepitoStatusNotifier extends Notifier<AsyncValue<PepitoStatus>> {
+// Notifier que maneja Realtime + polling automático del estado
+class PepitoStatusNotifier extends AsyncNotifier<PepitoStatus> {
   Timer? _pollingTimer;
   PepitoStatus? _lastStatus;
+  StreamSubscription<List<PepitoActivity>>? _realtimeSubscription;
 
   @override
-  AsyncValue<PepitoStatus> build() {
-    _startPolling();
+  Future<PepitoStatus> build() async {
     ref.onDispose(() {
       _pollingTimer?.cancel();
+      _realtimeSubscription?.cancel();
     });
-    return const AsyncValue.loading();
+    _startRealtimeSubscription();
+    _startPolling();
+    return _fetchStatus();
   }
 
-  void _startPolling() {
-    // Obtener estado inicial inmediatamente
-    _fetchStatus();
-
-    // Configurar polling adaptativo (reducido a 2 minutos)
-    _pollingTimer = Timer.periodic(const Duration(minutes: 2), (_) {
-      _fetchStatus();
-    });
-  }
-
-  Future<void> _fetchStatus() async {
+  void _startRealtimeSubscription() {
     try {
-      final apiService = ref.read(apiServiceProvider);
       final supabaseService = ref.read(supabaseServiceProvider);
-
-      final newStatus = await apiService.getCurrentStatus();
-
-        // Verificar si el estado ha cambiado
-      bool hasChanged = _lastStatus == null ||
-          _lastStatus!.type != newStatus.type ||
-          _lastStatus!.timestamp != newStatus.timestamp;
-
-      if (hasChanged) {
-        Logger.info('Nuevo estado detectado: ${newStatus.type} (timestamp: ${newStatus.timestamp})');
-
-        // Validar y guardar en Supabase de forma segura
-        if (newStatus.lastActivity != null) {
-          try {
-            Logger.info('Iniciando almacenamiento seguro de actividad');
-            await _safeLogStatusUpdate(supabaseService, newStatus.lastActivity!);
-            Logger.info('Estado guardado en Supabase: ${newStatus.type}');
-          } catch (e) {
-            Logger.error('Error en inserción segura en pepito_activities: $e');
-            // No relanzar el error para evitar crashes
-          }
-        }        _lastStatus = newStatus;
-      } else {
-        Logger.debug('Estado sin cambios: ${newStatus.type} (timestamp: ${newStatus.timestamp})');
-      }
-
-      state = AsyncValue.data(newStatus);
-    } catch (e, stackTrace) {
-      Logger.error('Error obteniendo estado: $e');
-      state = AsyncValue.error(_handleError(e, stackTrace), stackTrace);
+      _realtimeSubscription = supabaseService
+          .watchRecentActivities(limit: 1)
+          .listen((_) {
+        _fetchAndUpdate();
+      }, onError: (error) {
+        Logger.error('Error en Realtime: $error');
+      });
+    } catch (e) {
+      Logger.error('Error iniciando Realtime: $e');
     }
   }
 
-  // Método seguro para insertar actividades
+  void _startPolling() {
+    _pollingTimer = Timer.periodic(const Duration(minutes: 5), (_) {
+      _fetchAndUpdate();
+    });
+  }
+
+  Future<void> _fetchAndUpdate() async {
+    try {
+      state = AsyncValue.data(await _fetchStatus());
+    } catch (e, st) {
+      state = AsyncValue.error(_handleError(e, st), st);
+    }
+  }
+
+  Future<PepitoStatus> _fetchStatus() async {
+    final apiService = ref.read(apiServiceProvider);
+    final supabaseService = ref.read(supabaseServiceProvider);
+
+    final newStatus = await apiService.getCurrentStatus();
+
+    final hasChanged = _lastStatus == null ||
+        _lastStatus!.type != newStatus.type ||
+        _lastStatus!.timestamp != newStatus.timestamp;
+
+    if (hasChanged) {
+      Logger.info('Nuevo estado detectado: ${newStatus.type} (timestamp: ${newStatus.timestamp})');
+
+      if (newStatus.lastActivity != null) {
+        try {
+          Logger.info('Iniciando almacenamiento seguro de actividad');
+          await _safeLogStatusUpdate(supabaseService, newStatus.lastActivity!);
+          Logger.info('Estado guardado en Supabase: ${newStatus.type}');
+        } catch (e) {
+          Logger.error('Error en inserción segura en pepito_activities: $e');
+        }
+      }
+      _lastStatus = newStatus;
+    } else {
+      Logger.debug('Estado sin cambios: ${newStatus.type} (timestamp: ${newStatus.timestamp})');
+    }
+
+    return newStatus;
+  }
+
   Future<void> _safeLogStatusUpdate(SupabaseService supabaseService, PepitoActivity activity) async {
     try {
-      // Validar que la actividad tenga datos válidos
       if (activity.event.isEmpty) {
         Logger.error('Actividad con evento vacío, saltando inserción');
         return;
       }
 
-      // Verificar si la actividad ya existe para evitar duplicados
       final existingActivities = await supabaseService.getStatusHistory(
         limit: 1,
         since: activity.timestamp.subtract(const Duration(seconds: 1)),
@@ -210,15 +220,11 @@ class PepitoStatusNotifier extends Notifier<AsyncValue<PepitoStatus>> {
         return;
       }
 
-      // Insertar la nueva actividad
       await supabaseService.logStatusUpdate(activity);
       Logger.info('Actividad insertada exitosamente en Supabase');
-
     } catch (e) {
-      // Capturar y loggear el error específico sin relanzar
       Logger.error('Error en inserción segura: $e');
 
-      // Si es un error de tipo null, intentar crear una actividad válida
       if (e.toString().contains('null: type \'Null\' is not a subtype of type \'Object\'')) {
         try {
           Logger.info('Intentando crear actividad con datos seguros...');
@@ -230,27 +236,23 @@ class PepitoStatusNotifier extends Notifier<AsyncValue<PepitoStatus>> {
     }
   }
 
-  // Crear actividad con datos completamente seguros
   Future<void> _createSafeActivity(SupabaseService supabaseService, PepitoActivity activity) async {
-    // Crear una nueva actividad con todos los campos validados
     final safeActivity = PepitoActivity(
-      id: null, // Dejar que Supabase genere el ID
+      id: null,
       event: activity.event.isNotEmpty ? activity.event : 'pepito',
       type: activity.type,
       timestamp: activity.timestamp,
-      imageUrl: activity.imageUrl, // Puede ser null
-      metadata: activity.metadata ?? {}, // Asegurar que no sea null
+      imageUrl: activity.imageUrl,
+      metadata: activity.metadata ?? {},
     );
 
-    // Intentar insertar la actividad segura
     await supabaseService.logStatusUpdate(safeActivity);
     Logger.info('Actividad segura creada exitosamente');
   }
 
-  // Método para forzar actualización manual
   Future<void> refresh() async {
     state = const AsyncValue.loading();
-    await _fetchStatus();
+    await _fetchAndUpdate();
   }
 }
 
@@ -263,7 +265,7 @@ Object _handleError(Object error, StackTrace stackTrace) {
 }
 
 // Provider para las actividades de hoy (solo API local)
-final todayActivitiesLocalProvider = FutureProvider<List<PepitoActivity>>((ref) async {
+final todayActivitiesLocalProvider = FutureProvider.autoDispose<List<PepitoActivity>>((ref) async {
   final apiService = ref.read(apiServiceProvider);
   return await apiService.getTodayActivities();
 });
@@ -271,13 +273,13 @@ final todayActivitiesLocalProvider = FutureProvider<List<PepitoActivity>>((ref) 
 
 
 // Provider para las actividades de hoy (solo API local, sin almacenamiento automático)
-final todayActivitiesProvider = FutureProvider<List<PepitoActivity>>((ref) async {
+final todayActivitiesProvider = FutureProvider.autoDispose<List<PepitoActivity>>((ref) async {
   final apiService = ref.read(apiServiceProvider);
   return await apiService.getTodayActivities();
 });
 
 // Provider para todas las actividades con paginación (solo API local)
-final activitiesLocalProvider = FutureProvider.family<List<PepitoActivity>, ActivitiesParams>(
+final activitiesLocalProvider = FutureProvider.family.autoDispose<List<PepitoActivity>, ActivitiesParams>(
   (ref, params) async {
     final apiService = ref.read(apiServiceProvider);
     return await apiService.getActivities(
@@ -292,7 +294,7 @@ final activitiesLocalProvider = FutureProvider.family<List<PepitoActivity>, Acti
 
 
 // Provider para todas las actividades con paginación (usando Supabase para historial)
-final activitiesProvider = FutureProvider.family<List<PepitoActivity>, ActivitiesParams>(
+final activitiesProvider = FutureProvider.family.autoDispose<List<PepitoActivity>, ActivitiesParams>(
   (ref, params) async {
     final supabaseService = ref.read(supabaseServiceProvider);
     
@@ -327,7 +329,7 @@ final activitiesProvider = FutureProvider.family<List<PepitoActivity>, Activitie
 );
 
 // Provider para estadísticas (solo API local)
-final statisticsLocalProvider = FutureProvider.family<Map<String, dynamic>, StatisticsParams>(
+final statisticsLocalProvider = FutureProvider.family.autoDispose<Map<String, dynamic>, StatisticsParams>(
   (ref, params) async {
     final apiService = ref.read(apiServiceProvider);
     return await apiService.getStatistics(
@@ -338,7 +340,7 @@ final statisticsLocalProvider = FutureProvider.family<Map<String, dynamic>, Stat
 );
 
 // Provider para estadísticas (alias del provider de Supabase para compatibilidad)
-final statisticsProvider = FutureProvider.family<Map<String, dynamic>, StatisticsParams>(
+final statisticsProvider = FutureProvider.family.autoDispose<Map<String, dynamic>, StatisticsParams>(
   (ref, params) async {
     final supabaseService = ref.read(supabaseServiceProvider);
     return await supabaseService.getActivityStatistics(

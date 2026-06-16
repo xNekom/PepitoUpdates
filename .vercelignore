@@ -1,0 +1,17 @@
+node_modules
+.dart_tool
+.kilo
+.git
+.github
+android
+ios
+windows
+linux
+macos
+*.yaml
+*.md
+*.bat
+*.sh
+.gitignore
+.env*
+pubspec.lock

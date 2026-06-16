@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'config/supabase_config.dart';
@@ -16,41 +17,62 @@ import 'utils/logger.dart';
 import 'screens/home_screen.dart';
 import 'generated/app_localizations.dart';
 
+void _validateEnvironment() {
+  if (!kDebugMode && !kProfileMode) return;
+
+  final required = {
+    'SUPABASE_URL': const String.fromEnvironment('SUPABASE_URL'),
+    'SUPABASE_ANON_KEY': const String.fromEnvironment('SUPABASE_ANON_KEY'),
+  };
+
+  final missing = <String>[];
+  for (final entry in required.entries) {
+    if (entry.value.isEmpty) missing.add(entry.key);
+  }
+
+  if (missing.isNotEmpty) {
+    Logger.warning(
+      'Variables de entorno no configuradas: ${missing.join(', ')}. '
+      'Usa --dart-define=CLAVE=VALOR o --dart-define-from-file=.env',
+    );
+  }
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Configurar orientación (solo móviles)
-  if (defaultTargetPlatform == TargetPlatform.android || 
-      defaultTargetPlatform == TargetPlatform.iOS) {
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
-  }
+  _validateEnvironment();
 
-  // Configurar logging según entorno
-  if (EnvironmentConfig.enableLogging) {
-    Logger.info('Logger initialized');
-  }
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = const String.fromEnvironment('SENTRY_DSN');
+      options.tracesSampleRate = 0.1;
+    },
+    appRunner: () async {
+      if (defaultTargetPlatform == TargetPlatform.android || 
+          defaultTargetPlatform == TargetPlatform.iOS) {
+        await SystemChrome.setPreferredOrientations([
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown,
+        ]);
+      }
 
-  // Inicializar Supabase
-  await Supabase.initialize(
-    url: ApiConfig.supabaseUrl,
-    anonKey: SupabaseConfig.supabaseAnonKey,
-    debug: EnvironmentConfig.enableDebugMode,
-  );
+      if (EnvironmentConfig.enableLogging) {
+        Logger.info('Logger initialized');
+      }
 
-  // Configurar manejo de errores en producción
-  if (EnvironmentConfig.isProduction) {
-    FlutterError.onError = (FlutterErrorDetails details) {
-      Logger.error('Flutter Error', details.exception);
-    };
-  }
+      await Supabase.initialize(
+        url: ApiConfig.supabaseUrl,
+        anonKey: SupabaseConfig.supabaseAnonKey,
+        debug: kDebugMode,
+      );
 
-  runApp(
-    ProviderScope(
-      child: const PepitoApp(),
-    ),
+      runApp(
+        ProviderScope(
+          child: const PepitoApp(),
+        ),
+      );
+    },
   );
 }
 
@@ -97,7 +119,7 @@ class PepitoApp extends ConsumerWidget {
 
     Widget app = MaterialApp(
       title: 'Pépito Updates',
-      debugShowCheckedModeBanner: EnvironmentConfig.enableDebugMode,
+      debugShowCheckedModeBanner: kDebugMode,
       themeMode: themeMode,
       theme: materialTheme,
       darkTheme: materialDarkTheme,
