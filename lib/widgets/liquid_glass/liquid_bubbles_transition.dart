@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 
 class LiquidBubblesTransition extends StatefulWidget {
-  static _LiquidBubblesTransitionState? of(BuildContext context) {
-    return context.findAncestorStateOfType<_LiquidBubblesTransitionState>();
+  static LiquidBubblesTransitionState? of(BuildContext context) {
+    return context.findAncestorStateOfType<LiquidBubblesTransitionState>();
   }
 
   final Widget child;
@@ -23,10 +23,10 @@ class LiquidBubblesTransition extends StatefulWidget {
 
   @override
   State<LiquidBubblesTransition> createState() =>
-      _LiquidBubblesTransitionState();
+      LiquidBubblesTransitionState();
 }
 
-class _LiquidBubblesTransitionState extends State<LiquidBubblesTransition>
+class LiquidBubblesTransitionState extends State<LiquidBubblesTransition>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;

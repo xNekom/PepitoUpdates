@@ -1,45 +1,39 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/platform_detector.dart';
 
-class PlatformStyleProvider extends ChangeNotifier {
+class PlatformStyleNotifier extends Notifier<WidgetStyle> {
   WidgetStyle? _manualOverride;
 
-  WidgetStyle get currentStyle {
-    // Si hay override manual (para desarrollo/testing)
+  @override
+  WidgetStyle build() {
     if (_manualOverride != null) {
       return _manualOverride!;
     }
-
-    // Si no, usar el recomendado por plataforma
     return PlatformDetector.recommendedStyle;
   }
 
-  bool get isLiquidGlass => currentStyle == WidgetStyle.liquidGlass;
-  bool get isMaterialExpressive => currentStyle == WidgetStyle.materialExpressive;
+  bool get isLiquidGlass => state == WidgetStyle.liquidGlass;
+  bool get isMaterialExpressive => state == WidgetStyle.materialExpressive;
 
-  // Para desarrollo: forzar un estilo específico
   void setManualStyle(WidgetStyle? style) {
     _manualOverride = style;
-    notifyListeners();
+    state = style ?? PlatformDetector.recommendedStyle;
   }
 
   void resetToDefault() {
     _manualOverride = null;
-    notifyListeners();
+    state = PlatformDetector.recommendedStyle;
   }
 
-  // Info de plataforma
   String get platformInfo {
     final platform = PlatformDetector.currentPlatform;
-    final style = currentStyle;
-    return 'Platform: ${platform.name} | Style: ${style.name}';
+    return 'Platform: ${platform.name} | Style: ${state.name}';
   }
 
-  // Información detallada para debugging
   String get debugInfo {
     final platform = PlatformDetector.currentPlatform;
     final recommended = PlatformDetector.recommendedStyle;
-    final current = currentStyle;
+    final current = state;
     final override = _manualOverride;
 
     return '''

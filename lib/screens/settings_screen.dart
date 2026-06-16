@@ -34,7 +34,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return _buildLiquidGlassUI(context);
+    final platformStyle = ref.watch(platformStyleProvider);
+
+    return switch (platformStyle) {
+      WidgetStyle.liquidGlass => _buildLiquidGlassUI(context),
+      WidgetStyle.fluentDesign => _buildMaterialUI(context),
+      WidgetStyle.materialExpressive => _buildMaterialUI(context),
+    };
+  }
+
+  Widget _buildMaterialUI(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.settings),
+        backgroundColor: theme.colorScheme.surface,
+        foregroundColor: theme.colorScheme.onSurface,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildNotificationSection(),
+            _buildAppearanceSection(),
+            _buildDataSection(),
+            _buildAboutSection(),
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildLiquidGlassUI(BuildContext context) {
@@ -59,233 +91,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   }
 
 
-  Widget _buildMaterial3ExpressiveNotificationSection() {
-    return Consumer(
-      builder: (context, ref, child) {
-        final notificationSettings = ref.watch(notificationSettingsProvider);
-        final theme = Theme.of(context);
-
-        return Card(
-          elevation: 4,
-          shadowColor: theme.colorScheme.shadow.withValues(alpha: 0.3),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(
-              color: theme.colorScheme.outline.withValues(alpha: 0.2),
-              width: 1,
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.notifications,
-                      color: theme.colorScheme.primary,
-                      size: 24,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      AppLocalizations.of(context)!.notifications,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildMaterial3ExpressiveSwitchTile(
-                  title: AppLocalizations.of(context)!.pushNotifications,
-                  subtitle: AppLocalizations.of(context)!.receiveNotificationsWhenPepitoEntersOrLeaves,
-                  value: notificationSettings.pushEnabled,
-                  onChanged: (value) {
-                    ref.read(notificationSettingsProvider.notifier).updatePushEnabled(value);
-                    if (value) {
-                      _requestNotificationPermission();
-                    }
-                  },
-                ),
-                _buildMaterial3ExpressiveSwitchTile(
-                  title: AppLocalizations.of(context)!.entryNotifications,
-                  subtitle: AppLocalizations.of(context)!.notifyWhenPepitoArrivesHome,
-                  value: notificationSettings.entryNotifications,
-                  enabled: notificationSettings.pushEnabled,
-                  onChanged: (value) {
-                    ref.read(notificationSettingsProvider.notifier).updateEntryNotifications(value);
-                  },
-                ),
-                _buildMaterial3ExpressiveSwitchTile(
-                  title: AppLocalizations.of(context)!.exitNotifications,
-                  subtitle: AppLocalizations.of(context)!.notifyWhenPepitoLeavesHome,
-                  value: notificationSettings.exitNotifications,
-                  enabled: notificationSettings.pushEnabled,
-                  onChanged: (value) {
-                    ref.read(notificationSettingsProvider.notifier).updateExitNotifications(value);
-                  },
-                ),
-                _buildMaterial3ExpressiveSwitchTile(
-                  title: AppLocalizations.of(context)!.sound,
-                  subtitle: 'Reproducir sonido con las notificaciones',
-                  value: notificationSettings.soundEnabled,
-                  enabled: notificationSettings.pushEnabled,
-                  onChanged: (value) {
-                    ref.read(notificationSettingsProvider.notifier).updateSoundEnabled(value);
-                  },
-                ),
-                if (!kIsWeb) _buildMaterial3ExpressiveSwitchTile(
-                  title: AppLocalizations.of(context)!.vibration,
-                  subtitle: 'Vibrar con las notificaciones',
-                  value: notificationSettings.vibrationEnabled,
-                  enabled: notificationSettings.pushEnabled,
-                  onChanged: (value) {
-                    ref.read(notificationSettingsProvider.notifier).updateVibrationEnabled(value);
-                  },
-                ),
-                if (notificationSettings.pushEnabled) ..._buildMaterial3ExpressiveQuietHoursSection(notificationSettings),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  List<Widget> _buildMaterial3ExpressiveQuietHoursSection(NotificationSettings settings) {
-    return [
-      const Divider(),
-      _buildMaterial3ExpressiveSwitchTile(
-        title: AppLocalizations.of(context)!.quietHours,
-        subtitle: AppLocalizations.of(context)!.doNotDisturbDuringCertainHours,
-        value: settings.quietHoursEnabled,
-        onChanged: (value) {
-          ref.read(notificationSettingsProvider.notifier).updateQuietHoursEnabled(value);
-        },
-      ),
-      if (settings.quietHoursEnabled) ...[
-        _buildMaterial3ExpressiveTimeTile(
-          title: AppLocalizations.of(context)!.quietHoursStart,
-          time: settings.quietHoursStart,
-          onChanged: (time) {
-            ref.read(notificationSettingsProvider.notifier).updateQuietHoursStart(time);
-          },
-        ),
-        _buildMaterial3ExpressiveTimeTile(
-          title: AppLocalizations.of(context)!.quietHoursEnd,
-          time: settings.quietHoursEnd,
-          onChanged: (time) {
-            ref.read(notificationSettingsProvider.notifier).updateQuietHoursEnd(time);
-          },
-        ),
-      ],
-    ];
-  }
-
-  Widget _buildMaterial3ExpressiveSwitchTile({
-    required String title,
-    required String subtitle,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-    bool enabled = true,
-  }) {
-    final theme = Theme.of(context);
-
-    return ListTile(
-      title: Text(
-        title,
-        style: theme.textTheme.bodyLarge?.copyWith(
-          color: enabled ? theme.colorScheme.onSurface : theme.colorScheme.onSurfaceVariant,
-        ),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: theme.textTheme.bodyMedium?.copyWith(
-          color: enabled ? theme.colorScheme.onSurfaceVariant : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-        ),
-      ),
-      trailing: Switch(
-        value: value,
-        onChanged: enabled ? onChanged : null,
-        activeColor: theme.colorScheme.primary,
-      ),
-      enabled: enabled,
-    );
-  }
-
-  Widget _buildMaterial3ExpressiveUI(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.settings),
-        backgroundColor: theme.colorScheme.surface,
-        foregroundColor: theme.colorScheme.onSurface,
-        elevation: 4,
-        shadowColor: theme.colorScheme.shadow.withValues(alpha: 0.3),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildMaterial3ExpressiveNotificationSection(),
-            _buildMaterial3ExpressiveAppearanceSection(),
-            _buildMaterial3ExpressiveDataSection(),
-            _buildMaterial3ExpressiveAboutSection(),
-            const SizedBox(height: 32),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMaterial3ExpressiveAppearanceSection() {
-    return _buildAppearanceSection();
-  }
-
-  Widget _buildMaterial3ExpressiveDataSection() {
-    return _buildDataSection();
-  }
-
-  Widget _buildMaterial3ExpressiveAboutSection() {
-    return _buildAboutSection();
-  }
-
-  Widget _buildMaterial3ExpressiveTimeTile({
-    required String title,
-    required TimeOfDay time,
-    required ValueChanged<TimeOfDay> onChanged,
-  }) {
-    final theme = Theme.of(context);
-
-    return ListTile(
-      title: Text(
-        title,
-        style: theme.textTheme.bodyLarge?.copyWith(
-          color: theme.colorScheme.onSurface,
-        ),
-      ),
-      trailing: Text(
-        time.format(context),
-        style: theme.textTheme.bodyLarge?.copyWith(
-          color: theme.colorScheme.primary,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      onTap: () async {
-        final TimeOfDay? picked = await showTimePicker(
-          context: context,
-          initialTime: time,
-        );
-        if (picked != null && picked != time) {
-          onChanged(picked);
-        }
-      },
-    );
-  }
 
   Widget _buildNotificationSection() {
     return Consumer(

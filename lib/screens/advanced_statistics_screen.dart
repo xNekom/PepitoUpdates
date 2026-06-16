@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
@@ -18,7 +17,13 @@ class AdvancedStatisticsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return _buildLiquidGlassUI(context, ref);
+    final platformStyle = ref.watch(platformStyleProvider);
+
+    return switch (platformStyle) {
+      WidgetStyle.liquidGlass => _buildLiquidGlassUI(context, ref),
+      WidgetStyle.fluentDesign => _buildMaterial3ExpressiveUI(context, ref),
+      WidgetStyle.materialExpressive => _buildMaterial3ExpressiveUI(context, ref),
+    };
   }
 
   Widget _buildLiquidGlassUI(BuildContext context, WidgetRef ref) {

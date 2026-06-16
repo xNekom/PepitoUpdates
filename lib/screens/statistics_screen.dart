@@ -57,11 +57,54 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
     super.build(context);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final platformStyle = ref.watch(platformStyleProvider);
 
+    return switch (platformStyle) {
+      WidgetStyle.liquidGlass => _buildLiquidGlassScaffold(colorScheme),
+      WidgetStyle.fluentDesign => _buildMaterialScaffold(colorScheme),
+      WidgetStyle.materialExpressive => _buildMaterialScaffold(colorScheme),
+    };
+  }
+
+  Widget _buildLiquidGlassScaffold(ColorScheme colorScheme) {
     return Scaffold(
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) => [
           _buildAppBar(colorScheme),
+          _buildPeriodSelector(),
+          _buildTabBar(colorScheme),
+        ],
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            _buildOverviewTab(),
+            _buildChartsTab(),
+            _buildInsightsTab(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMaterialScaffold(ColorScheme colorScheme) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.statistics),
+        backgroundColor: AppTheme.primaryColor,
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            onPressed: _selectCustomPeriod,
+            icon: const Icon(Icons.date_range),
+          ),
+          IconButton(
+            onPressed: _refreshData,
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
+      ),
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
           _buildPeriodSelector(),
           _buildTabBar(colorScheme),
         ],

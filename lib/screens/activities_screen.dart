@@ -102,32 +102,112 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen>
     super.build(context);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final platformStyle = ref.watch(platformStyleProvider);
 
+    return switch (platformStyle) {
+      WidgetStyle.liquidGlass => _buildLiquidGlassScaffold(colorScheme),
+      WidgetStyle.fluentDesign => _buildFluentScaffold(colorScheme),
+      WidgetStyle.materialExpressive => _buildMaterialScaffold(colorScheme),
+    };
+  }
+
+  Widget _buildLiquidGlassScaffold(ColorScheme colorScheme) {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Fondo animado ambiental Liquid Glass
           const CirclesBackground(),
-          CustomScrollView(
-            controller: _scrollController,
-            slivers: [
-              _buildAppBar(colorScheme),
-          _buildFilterSection(),
-          _buildActivitiesList(),
-          if (_isLoadingMore)
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-            ),
-          const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
-        ],
-      ),
+          _buildContentScroller(colorScheme),
         ],
       ),
       floatingActionButton: _buildScrollToTopFab(),
+    );
+  }
+
+  Widget _buildMaterialScaffold(ColorScheme colorScheme) {
+    return Scaffold(
+      backgroundColor: colorScheme.surface,
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.activities),
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
+        elevation: 0,
+        actions: [
+          IconButton(
+            onPressed: _showFilterDialog,
+            icon: Consumer(
+              builder: (context, ref, child) {
+                final filter = ref.watch(activityFilterProvider);
+                return Stack(
+                  children: [
+                    Icon(Icons.filter_list),
+                    if (filter.hasActiveFilters)
+                      Positioned(
+                        right: 0, top: 0,
+                        child: Container(
+                          width: 8, height: 8,
+                          decoration: BoxDecoration(
+                            color: AppTheme.warningColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ),
+          IconButton(
+            onPressed: _loadInitialData,
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
+      ),
+      body: _buildContentScroller(colorScheme),
+      floatingActionButton: _buildScrollToTopFab(),
+    );
+  }
+
+  Widget _buildFluentScaffold(ColorScheme colorScheme) {
+    return Scaffold(
+      backgroundColor: colorScheme.surface,
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.activities),
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
+        elevation: 1,
+        actions: [
+          IconButton(
+            onPressed: _showFilterDialog,
+            icon: const Icon(Icons.filter_list),
+          ),
+          IconButton(
+            onPressed: _loadInitialData,
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
+      ),
+      body: _buildContentScroller(colorScheme),
+      floatingActionButton: _buildScrollToTopFab(),
+    );
+  }
+
+  Widget _buildContentScroller(ColorScheme colorScheme) {
+    return CustomScrollView(
+      controller: _scrollController,
+      slivers: [
+        _buildAppBar(colorScheme),
+        _buildFilterSection(),
+        _buildActivitiesList(),
+        if (_isLoadingMore)
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          ),
+        const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+      ],
     );
   }
 

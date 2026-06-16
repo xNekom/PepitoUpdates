@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:material_color_utilities/material_color_utilities.dart';
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:flutter/cupertino.dart';
 import '../theme/premium_typography.dart';
@@ -42,73 +41,10 @@ class AppTheme {
 
   // Generar esquema de colores Material 3
   static ColorScheme _generateColorScheme(Color seedColor, Brightness brightness) {
-    final scheme = CorePalette.of(seedColor.toARGB32());
-    
-    if (brightness == Brightness.light) {
-      return ColorScheme(
-        brightness: Brightness.light,
-        primary: Color(scheme.primary.get(40)),
-        onPrimary: Color(scheme.primary.get(100)),
-        primaryContainer: Color(scheme.primary.get(90)),
-        onPrimaryContainer: Color(scheme.primary.get(10)),
-        secondary: Color(scheme.secondary.get(40)),
-        onSecondary: Color(scheme.secondary.get(100)),
-        secondaryContainer: Color(scheme.secondary.get(90)),
-        onSecondaryContainer: Color(scheme.secondary.get(10)),
-        tertiary: Color(scheme.tertiary.get(40)),
-        onTertiary: Color(scheme.tertiary.get(100)),
-        tertiaryContainer: Color(scheme.tertiary.get(90)),
-        onTertiaryContainer: Color(scheme.tertiary.get(10)),
-        error: Color(scheme.error.get(40)),
-        onError: Color(scheme.error.get(100)),
-        errorContainer: Color(scheme.error.get(90)),
-        onErrorContainer: Color(scheme.error.get(10)),
-        surface: Color(scheme.neutral.get(99)),
-        onSurface: Color(scheme.neutral.get(10)),
-        surfaceContainerHighest: Color(scheme.neutralVariant.get(90)),
-        onSurfaceVariant: Color(scheme.neutralVariant.get(30)),
-        outline: Color(scheme.neutralVariant.get(50)),
-        outlineVariant: Color(scheme.neutralVariant.get(80)),
-        shadow: Color(scheme.neutral.get(0)),
-        scrim: Color(scheme.neutral.get(0)),
-        inverseSurface: Color(scheme.neutral.get(20)),
-        onInverseSurface: Color(scheme.neutral.get(95)),
-        inversePrimary: Color(scheme.primary.get(80)),
-        surfaceTint: Color(scheme.primary.get(40)),
-      );
-    } else {
-      return ColorScheme(
-        brightness: Brightness.dark,
-        primary: Color(scheme.primary.get(80)),
-        onPrimary: Color(scheme.primary.get(20)),
-        primaryContainer: Color(scheme.primary.get(30)),
-        onPrimaryContainer: Color(scheme.primary.get(90)),
-        secondary: Color(scheme.secondary.get(80)),
-        onSecondary: Color(scheme.secondary.get(20)),
-        secondaryContainer: Color(scheme.secondary.get(30)),
-        onSecondaryContainer: Color(scheme.secondary.get(90)),
-        tertiary: Color(scheme.tertiary.get(80)),
-        onTertiary: Color(scheme.tertiary.get(20)),
-        tertiaryContainer: Color(scheme.tertiary.get(30)),
-        onTertiaryContainer: Color(scheme.tertiary.get(90)),
-        error: Color(scheme.error.get(80)),
-        onError: Color(scheme.error.get(20)),
-        errorContainer: Color(scheme.error.get(30)),
-        onErrorContainer: Color(scheme.error.get(90)),
-        surface: Color(scheme.neutral.get(10)),
-        onSurface: Color(scheme.neutral.get(90)),
-        surfaceContainerHighest: Color(scheme.neutralVariant.get(30)),
-        onSurfaceVariant: Color(scheme.neutralVariant.get(80)),
-        outline: Color(scheme.neutralVariant.get(60)),
-        outlineVariant: Color(scheme.neutralVariant.get(30)),
-        shadow: Color(scheme.neutral.get(0)),
-        scrim: Color(scheme.neutral.get(0)),
-        inverseSurface: Color(scheme.neutral.get(90)),
-        onInverseSurface: Color(scheme.neutral.get(20)),
-        inversePrimary: Color(scheme.primary.get(40)),
-        surfaceTint: Color(scheme.primary.get(80)),
-      );
-    }
+    return ColorScheme.fromSeed(
+      seedColor: seedColor,
+      brightness: brightness,
+    );
   }
 
   // Tema claro

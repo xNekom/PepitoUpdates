@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:fluent_ui/fluent_ui.dart' as fluent;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -10,13 +11,14 @@ import 'config/environment_config.dart';
 import 'config/api_config.dart';
 import 'providers/pepito_providers.dart';
 import 'utils/theme_utils.dart';
+import 'utils/platform_detector.dart';
 import 'utils/logger.dart';
 import 'screens/home_screen.dart';
 import 'generated/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Configurar orientación (solo móviles)
   if (defaultTargetPlatform == TargetPlatform.android || 
       defaultTargetPlatform == TargetPlatform.iOS) {
@@ -25,26 +27,26 @@ void main() async {
       DeviceOrientation.portraitDown,
     ]);
   }
-  
+
   // Configurar logging según entorno
   if (EnvironmentConfig.enableLogging) {
     Logger.info('Logger initialized');
   }
-  
+
   // Inicializar Supabase
   await Supabase.initialize(
-    url: ApiConfig.supabaseUrl,  // Cambiado para usar proxy en desarrollo web
+    url: ApiConfig.supabaseUrl,
     anonKey: SupabaseConfig.supabaseAnonKey,
     debug: EnvironmentConfig.enableDebugMode,
   );
-  
+
   // Configurar manejo de errores en producción
   if (EnvironmentConfig.isProduction) {
     FlutterError.onError = (FlutterErrorDetails details) {
       Logger.error('Flutter Error', details.exception);
     };
   }
-  
+
   runApp(
     ProviderScope(
       child: const PepitoApp(),
@@ -58,40 +60,47 @@ class PepitoApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appThemeMode = ref.watch(themeProvider);
-    final themeMode = _convertToThemeMode(appThemeMode);
     final locale = ref.watch(localeProvider);
-    
-    // Inicializar servicios
-    ref.read(apiServiceProvider).initialize();
-    
-    // Notificaciones deshabilitadas por ahora
-    // TODO: Implementar notificaciones si es necesario
-    
-    ref.read(sseServiceProvider).connect();
-    
-    // Proveer una única y espectacular experiencia Premium UI para todas las plataformas
-    return _buildLiquidGlassApp(themeMode, locale);
-  }
-  
-  ThemeMode _convertToThemeMode(AppThemeMode appThemeMode) {
-    switch (appThemeMode) {
-      case AppThemeMode.light:
-        return ThemeMode.light;
-      case AppThemeMode.dark:
-        return ThemeMode.dark;
-      case AppThemeMode.system:
-        return ThemeMode.system;
-    }
-  }
-  
+    final platformStyle = ref.watch(platformStyleProvider);
 
-  Widget _buildLiquidGlassApp(ThemeMode themeMode, Locale locale) {
-    return MaterialApp(
-      title: 'Pépito - Liquid Glass',
+    final brightness = appThemeMode == AppThemeMode.dark
+        ? Brightness.dark
+        : appThemeMode == AppThemeMode.light
+            ? Brightness.light
+            : PlatformDetector.isWindows ? Brightness.light : Brightness.dark;
+
+    ThemeData? materialTheme;
+    ThemeData? materialDarkTheme;
+    fluent.FluentThemeData? fluentTheme;
+    fluent.FluentThemeData? fluentDarkTheme;
+
+    switch (platformStyle) {
+      case WidgetStyle.liquidGlass:
+        materialTheme = AppTheme.liquidGlassLightTheme;
+        materialDarkTheme = AppTheme.liquidGlassDarkTheme;
+      case WidgetStyle.fluentDesign:
+        fluentTheme = AppTheme.fluentLightTheme;
+        fluentDarkTheme = AppTheme.fluentDarkTheme;
+      case WidgetStyle.materialExpressive:
+        materialTheme = AppTheme.webTheme;
+        materialDarkTheme = AppTheme.webDarkTheme;
+    }
+
+    final ThemeMode themeMode;
+    if (appThemeMode == AppThemeMode.light) {
+      themeMode = ThemeMode.light;
+    } else if (appThemeMode == AppThemeMode.dark) {
+      themeMode = ThemeMode.dark;
+    } else {
+      themeMode = ThemeMode.system;
+    }
+
+    Widget app = MaterialApp(
+      title: 'Pépito Updates',
       debugShowCheckedModeBanner: EnvironmentConfig.enableDebugMode,
       themeMode: themeMode,
-      theme: AppTheme.liquidGlassLightTheme,
-      darkTheme: AppTheme.liquidGlassDarkTheme,
+      theme: materialTheme,
+      darkTheme: materialDarkTheme,
       locale: locale,
       localizationsDelegates: const [
         AppLocalizations.delegate,
@@ -105,6 +114,14 @@ class PepitoApp extends ConsumerWidget {
       ],
       home: const HomeScreen(),
     );
-  }
 
+    if (platformStyle == WidgetStyle.fluentDesign && fluentTheme != null) {
+      app = fluent.FluentTheme(
+        data: brightness == Brightness.dark ? fluentDarkTheme! : fluentTheme,
+        child: app,
+      );
+    }
+
+    return app;
+  }
 }

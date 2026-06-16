@@ -6,7 +6,6 @@ import 'dart:async';
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'package:flutter/cupertino.dart';
 import '../models/pepito_activity.dart';
 import '../widgets/adaptive/adaptive_status_card.dart';
@@ -20,7 +19,6 @@ import '../widgets/liquid_glass/circles_background.dart';
 import '../widgets/liquid_glass/liquid_app_bar.dart';
 import '../widgets/liquid_glass/components/glass_card.dart';
 import '../widgets/liquid_glass/components/frosted_panel.dart';
-import '../widgets/liquid_glass/liquid_bubbles_transition.dart';
 import '../theme/liquid_glass/apple_colors.dart';
 import '../theme/liquid_glass/glass_effects.dart';
 import '../utils/theme_utils.dart';
@@ -51,8 +49,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   // Animación para el efecto de burbuja líquida
   AnimationController? _bubbleAnimationController;
   Animation<double>? _bubbleAnimation;
-  int _currentSelectedIndex = 0;
-  int _previousSelectedIndex = 0;
+
 
   // Agregar debouncing
   Timer? _refreshDebounceTimer;
@@ -138,9 +135,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   void _onTabChanged() {
     if (mounted) {
-      _previousSelectedIndex = _currentSelectedIndex;
-      _currentSelectedIndex = _tabController.index;
-
       // Reiniciar y ejecutar animación de burbuja del navbar
       _bubbleAnimationController?.reset();
       _bubbleAnimationController?.forward();
@@ -156,7 +150,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    return _buildLiquidGlassUI(context);
+    final platformStyle = ref.watch(platformStyleProvider);
+
+    return switch (platformStyle) {
+      WidgetStyle.liquidGlass => _buildLiquidGlassUI(context),
+      WidgetStyle.fluentDesign => _buildFluentUI(context),
+      WidgetStyle.materialExpressive => _buildMaterial3ExpressiveUI(context),
+    };
   }
 
   Widget _buildMaterial3ExpressiveUI(BuildContext context) {
@@ -1765,14 +1765,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          bubbleColor.withOpacity(0.9),
-                          bubbleColor.withOpacity(0.6),
+                          bubbleColor.withValues(alpha: 0.9),
+                          bubbleColor.withValues(alpha: 0.6),
                         ],
                       ),
                       boxShadow: [
                         // Sombra de brillo intenso (Glow)
                         BoxShadow(
-                          color: bubbleColor.withOpacity(0.6),
+                          color: bubbleColor.withValues(alpha: 0.6),
                           blurRadius:
                               25, // Mucho blur para el efecto de luz difusa
                           spreadRadius: 5,
@@ -1780,7 +1780,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         ),
                         // Sombra interna para efecto 3D
                         BoxShadow(
-                          color: Colors.white.withOpacity(0.4),
+                          color: Colors.white.withValues(alpha: 0.4),
                           blurRadius: 15,
                           spreadRadius: -5,
                           offset: const Offset(-5, -5),
@@ -1852,14 +1852,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          bubbleColor.withOpacity(0.9),
-                          bubbleColor.withOpacity(0.6),
+                          bubbleColor.withValues(alpha: 0.9),
+                          bubbleColor.withValues(alpha: 0.6),
                         ],
                       ),
                       boxShadow: [
                         // Sombra de brillo intenso (Glow)
                         BoxShadow(
-                          color: bubbleColor.withOpacity(0.6),
+                          color: bubbleColor.withValues(alpha: 0.6),
                           blurRadius:
                               25, // Mucho blur para el efecto de luz difusa
                           spreadRadius: 5,
@@ -1867,7 +1867,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         ),
                         // Sombra interna para efecto 3D
                         BoxShadow(
-                          color: Colors.white.withOpacity(0.4),
+                          color: Colors.white.withValues(alpha: 0.4),
                           blurRadius: 15,
                           spreadRadius: -5,
                           offset: const Offset(-5, -5),
@@ -2726,62 +2726,4 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  // Widget para transiciones con efecto de burbuja líquida
-  Widget _buildLiquidTransitionBuilder(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-    Widget child,
-  ) {
-    final bubbleColor = AppleColors.getActivityColor(ActivityType.entrada);
-
-    return AnimatedBuilder(
-      animation: animation,
-      builder: (context, child) {
-        return Stack(
-          children: [
-            // Efecto de burbuja de fondo
-            if (animation.value > 0)
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      center: Alignment.center,
-                      radius: animation.value * 1.5,
-                      colors: [
-                        bubbleColor.withOpacity(animation.value * 0.3),
-                        bubbleColor.withOpacity(animation.value * 0.1),
-                        Colors.transparent,
-                      ],
-                      stops: const [0.0, 0.3, 1.0],
-                    ),
-                  ),
-                ),
-              ),
-
-            // Contenido con efecto de desvanecimiento
-            Opacity(
-              opacity: 1.0 - animation.value,
-              child: Transform.scale(
-                scale: 1.0 - (animation.value * 0.1),
-                child: child,
-              ),
-            ),
-
-            // Nueva pantalla con efecto de aparición
-            Opacity(
-              opacity: animation.value,
-              child: Transform.scale(
-                scale: 0.9 + (animation.value * 0.1),
-                child: secondaryAnimation.isCompleted
-                    ? child
-                    : const SizedBox(),
-              ),
-            ),
-          ],
-        );
-      },
-      child: child,
-    );
-  }
 }

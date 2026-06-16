@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:ui';
 import '../../../models/pepito_activity.dart';
 import '../../../theme/liquid_glass/apple_colors.dart';

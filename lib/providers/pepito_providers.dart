@@ -11,9 +11,12 @@ import '../services/supabase_service.dart';
 import '../services/localization_service.dart';
 import '../utils/date_utils.dart';
 import '../utils/logger.dart';
+import '../utils/platform_detector.dart';
+import 'platform_style_provider.dart';
 
 // Exportar PepitoStatus para que esté disponible
 export '../models/pepito_activity.dart' show PepitoStatus, ActivityType;
+export '../utils/platform_detector.dart' show WidgetStyle;
 
 // Provider para el servicio de API
 // Provider para el servicio de API
@@ -29,6 +32,11 @@ final apiServiceProvider = Provider<PepitoApiService>((ref) {
 final supabaseServiceProvider = Provider<SupabaseService>((ref) {
   return SupabaseService();
 });
+
+// Provider para el estilo de plataforma adaptativo
+final platformStyleProvider = NotifierProvider<PlatformStyleNotifier, WidgetStyle>(
+  () => PlatformStyleNotifier(),
+);
 
 // Provider para el historial de actividades desde Supabase
 final supabaseHistoryProvider = FutureProvider.family<List<PepitoActivity>, SupabaseHistoryParams>(
